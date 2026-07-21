@@ -15,6 +15,8 @@ class VerifyEmail extends Notification
      * Get the notification's delivery channels.
      *
      * @return array<int, string>
+     *
+     * @noinspection PhpUnusedParameterInspection
      */
     public function via(object $notifiable): array
     {
@@ -36,11 +38,11 @@ class VerifyEmail extends Notification
         );
 
         return (new MailMessage)
-            ->subject('Confirma tu cuenta en CashTracker')
-            ->greeting('¡Hola!')
-            ->line('Gracias por registrarte en CashTracker. Por favor, haz clic en el siguiente enlace para verificar tu cuenta:')
-            ->action('Verificar cuenta', $verificationUrl)
-            ->line('Si no creaste una cuenta, puedes ignorar este mensaje.')
-            ->salutation('Saludos, el equipo de CashTracker');
+            ->subject(__('messages.email_verify_subject'))
+            ->greeting(__('messages.email_verify_greeting'))
+            ->line(__('messages.email_verify_intro'))
+            ->action(__('messages.email_verify_action'), $verificationUrl)
+            ->line(__('messages.email_verify_disclaimer'))
+            ->salutation(__('messages.email_verify_salutation'));
     }
 }

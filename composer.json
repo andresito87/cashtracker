@@ -54,6 +54,9 @@
             "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test"
         ],
+        "test:compact": "@php artisan test --compact",
+        "test:filter": "@php artisan test --compact --filter",
+        "test:coverage": "@php artisan test --coverage",
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"

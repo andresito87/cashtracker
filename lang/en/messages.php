@@ -1,39 +1,131 @@
 <?php
 
 return [
-    'welcome_title' => 'Welcome, :name',
-    'welcome_subtitle' => 'Here you can manage your finances.',
-    'incomes' => 'Incomes',
-    'expenses' => 'Expenses',
-    'balance' => 'Balance',
-    'logout' => 'Log Out',
+    /*
+    |--------------------------------------------------------------------------
+    | Navigation & Common Layout
+    |--------------------------------------------------------------------------
+    */
     'login' => 'Log In',
+    'logout' => 'Log Out',
     'register' => 'Register',
     'dashboard' => 'Dashboard',
-    'forgot_password' => 'Forgot your password?',
-    'email_placeholder' => 'Registration email address',
-    'password_placeholder' => 'Registration password',
-    'confirm_password_placeholder' => 'Confirm password',
-    'name_placeholder' => 'Your Name',
-    'confirm_password' => 'Confirm password',
+    'loading' => 'Loading...',
+    'logging_in' => 'Logging in...',
+    'registering' => 'Registering...',
+    'logging_out' => 'Logging out...',
+    'login_success' => 'You have logged in successfully!',
+    'switch_to_english' => 'Switch to English',
+    'switch_to_spanish' => 'Switch to Spanish',
+    'signed_in_as' => 'Signed in as',
+    'admin_panel' => 'Admin Panel',
+    'settings' => 'Settings',
+    'change_password' => 'Change Password',
+    'back_to_list' => 'Back to list',
+    'edit' => 'Edit',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Landing Page
+    |--------------------------------------------------------------------------
+    */
+    'landing_hero_badge' => 'Smart Financial Control',
+    'landing_hero_title' => 'Take total control of your personal finances',
+    'landing_hero_subtitle' => 'CashTracker helps you manage your income, expenses, and budgets easily, securely, and intuitively. Simplify your finances today.',
+    'landing_cta_primary' => 'Get Started Free',
+    'landing_cta_dashboard' => 'Go to Dashboard',
+    'landing_cta_login' => 'Log In',
+    'landing_demo_balance' => 'Total Balance',
+    'landing_demo_incomes' => 'Incomes',
+    'landing_demo_expenses' => 'Expenses',
+    'landing_demo_budget_status' => 'Monthly Budget',
+    'landing_demo_used' => 'used',
+    'landing_features_badge' => 'Features',
+    'landing_features_title' => 'Everything you need to manage your money',
+    'landing_features_subtitle' => 'Tools designed to give you clarity and peace of mind with your budgets.',
+    'landing_feature_1_title' => 'Budget Management',
+    'landing_feature_1_desc' => 'Set spending limits by category and stay on top of your financial goals.',
+    'landing_feature_2_title' => 'Real-Time Balance',
+    'landing_feature_2_desc' => 'Instantly view your updated financial status with every transaction.',
+    'landing_feature_3_title' => 'Security & Privacy',
+    'landing_feature_3_desc' => 'Your data is protected with top encryption and privacy standards.',
+    'landing_feature_4_title' => 'Fast & Intuitive Interface',
+    'landing_feature_4_desc' => 'Clean, distraction-free design to record your entries in seconds.',
+    'landing_cta_box_title' => 'Ready to transform your finances?',
+    'landing_cta_box_subtitle' => 'Join CashTracker today and make smarter financial decisions.',
+    'landing_cta_box_button' => 'Create a free account',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Auth & User Forms
+    |--------------------------------------------------------------------------
+    */
     'name' => 'Name',
     'email' => 'Email',
     'password' => 'Password',
+    'confirm_password' => 'Confirm password',
+    'name_placeholder' => 'Your Name',
+    'email_placeholder' => 'Registration email address',
+    'password_placeholder' => 'Registration password',
+    'confirm_password_placeholder' => 'Confirm password',
+    'forgot_password' => 'Forgot your password?',
     'sign_in' => 'Sign In',
     'sign_up' => 'Sign Up',
+    'status_uncompromised' => 'The provided password has appeared in a data leak. Please choose a different password.',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Email Verification
+    |--------------------------------------------------------------------------
+    */
     'verify_email' => 'Verify your email address',
     'verification_sent' => 'Your account has been created. A verification email has been sent to your email address.',
     'verification_help' => 'If you have not received the email, check your spam folder or click the button below to request another verification link.',
     'verification_resent' => 'A new verification link has been sent to your email address.',
     'resend_verification' => 'Resend Verification Email',
     'status_verified' => 'Your email has been verified. You can now access the dashboard.',
-    'status_uncompromised' => 'The provided password has appeared in a data leak. Please choose a different password.',
+    'email_verify_subject' => 'Confirm your account at CashTracker',
+    'email_verify_greeting' => 'Hello!',
+    'email_verify_intro' => 'Thank you for registering at CashTracker. Please click the button below to verify your account:',
+    'email_verify_action' => 'Verify account',
+    'email_verify_disclaimer' => 'If you did not create an account, no further action is required.',
+    'email_verify_salutation' => 'Regards, the CashTracker team',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard & General Overview
+    |--------------------------------------------------------------------------
+    */
+    'welcome_title' => 'Welcome, :name',
+    'welcome_subtitle' => 'Here you can manage your finances.',
+    'hello_user' => 'Hello: :name',
+    'manage_budgets_title' => 'Manage Your Budgets',
+    'manage_budgets_subtitle' => 'Manage your budgets in this section',
+    'incomes' => 'Incomes',
+    'expenses' => 'Expenses',
+    'balance' => 'Balance',
+    'welcome_get_started' => "Let's get started",
+    'welcome_get_started_sub' => 'With so many options available to you, we suggest you start with the following:',
+    'welcome_read_the' => 'Read the',
+    'welcome_documentation' => 'Documentation',
+    'welcome_watch_tutorials' => 'Watch video tutorials at',
+    'welcome_deploy_now' => 'Deploy now',
+    'welcome_view_changelog' => 'View changelog',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Budgets
+    |--------------------------------------------------------------------------
+    */
+    'budgets' => 'Budgets',
+    'create_budget' => 'Create Budget',
+    'edit_budget' => 'Edit Budget',
+    'save_budget' => 'Save Budget',
+    'update_budget' => 'Update Budget',
+    'no_budgets' => 'No budgets yet.',
+    'amount' => 'Amount',
+    'description' => 'Description',
     'budget_created' => 'Budget created successfully.',
     'budget_updated' => 'Budget updated successfully.',
     'budget_deleted' => 'Budget deleted successfully.',
-    'loading' => 'Loading...',
-    'logging_in' => 'Logging in...',
-    'registering' => 'Registering...',
-    'logging_out' => 'Logging out...',
-    'login_success' => 'You have logged in successfully!',
 ];

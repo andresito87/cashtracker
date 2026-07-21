@@ -27,6 +27,7 @@ Homestead.yaml
 Thumbs.db
 
 # AI and Agent Files/Directories
+/.atl
 /.agents/
 /.ai/
 /.claude/

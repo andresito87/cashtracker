@@ -16,7 +16,7 @@ return [
         'mixed' => 'La contraseña debe contener tanto letras mayúsculas como minúsculas.',
         'symbols' => 'La contraseña debe contener al menos un símbolo.',
         'numbers' => 'La contraseña debe contener al menos un número.',
-        'uncompromised' => 'La contraseña ingresada ha aparecido en una filtración de datos. Por favor, elija otra.',
+        'uncompromised' => 'La contraseña ingresada ha aparecido en una filtración de datos. Por favor, elige otra.',
     ],
     'custom' => [
         'email' => [

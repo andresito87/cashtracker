@@ -6,43 +6,78 @@ use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\LanguageController;
 use Illuminate\Support\Facades\Route;
 
+/*
+|--------------------------------------------------------------------------
+| Public & Localization Routes
+|--------------------------------------------------------------------------
+*/
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('welcome');
 
 Route::get('/lang/{locale}', [LanguageController::class, 'switch'])->name('lang.switch');
 
-Route::get('/auth/register', [RegisterController::class, 'index'])->name('register');
-Route::post('/auth/register', [RegisterController::class, 'store'])
-    ->middleware('throttle:5,1')
-    ->name('register.store');
+/*
+|--------------------------------------------------------------------------
+| Authentication Routes
+|--------------------------------------------------------------------------
+*/
+Route::prefix('auth')->group(function () {
+    Route::get('/register', [RegisterController::class, 'index'])->name('register');
+    Route::post('/register', [RegisterController::class, 'store'])
+        ->middleware('throttle:5,1')
+        ->name('register.store');
 
-Route::get('/auth/login', [LoginController::class, 'index'])->name('login');
-Route::post('/auth/login', [LoginController::class, 'store'])
-    ->middleware('throttle:5,1')
-    ->name('login.store');
-Route::post('/auth/logout', [LoginController::class, 'destroy'])->name('logout')->middleware('auth');
+    Route::get('/login', [LoginController::class, 'index'])->name('login');
+    Route::post('/login', [LoginController::class, 'store'])
+        ->middleware('throttle:5,1')
+        ->name('login.store');
 
-Route::get('verify-email/{id}/{hash}', [RegisterController::class, 'verifyEmail'])
-    ->middleware(['auth', 'signed', 'throttle:6,1'])->name('verification.verify');
+    Route::post('/logout', [LoginController::class, 'destroy'])
+        ->middleware('auth')
+        ->name('logout');
+});
 
-Route::post('/email/verification-notification', [RegisterController::class, 'resendVerification'])
-    ->middleware(['auth', 'throttle:6,1'])
-    ->name('verification.send');
+/*
+|--------------------------------------------------------------------------
+| Email Verification Routes
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', function () {
+        return view('auth.verify-email');
+    })->name('verification.notice');
 
-Route::get('/email/verify', function () {
-    return view('auth.verify-email');
-})
-    // Middleware avoids the user to access this route if they are not authenticated
-    ->middleware('auth')->name('verification.notice');
+    Route::get('/verify-email/{id}/{hash}', [RegisterController::class, 'verifyEmail'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})
-    // Middleware avoids the user to access this route if they are not authenticated and verified his email
-    ->middleware(['auth', 'verified'])->name('dashboard');
+    Route::post('/email/verification-notification', [RegisterController::class, 'resendVerification'])
+        ->middleware('throttle:6,1')
+        ->name('verification.send');
+});
 
-// Budget routes — requires to be authenticated and email-verified user
+/*
+|--------------------------------------------------------------------------
+| Authenticated & Verified Application Routes
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    Route::get('/settings', function () {
+        return redirect()->route('dashboard');
+    })->name('settings');
+
+    Route::get('/password/change', function () {
+        return redirect()->route('dashboard');
+    })->name('password.edit');
+
+    Route::get('/admin', function () {
+        return redirect()->route('dashboard');
+    })->name('admin.dashboard');
+
     Route::resource('budgets', BudgetController::class);
 });

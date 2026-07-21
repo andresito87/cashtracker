@@ -33,6 +33,7 @@ class LoginController extends Controller
                     'status_type' => 'success',
                 ]);
         }
+
         return back()->withErrors([
             'login' => __('validation.custom.email.invalid_credentials'),
         ])
