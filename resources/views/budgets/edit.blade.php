@@ -3,34 +3,25 @@
 @section('title', __('messages.edit_budget'))
 
 @section('contents')
-    <div class="min-h-[calc(100vh-64px)] bg-gray-50 p-6">
-        <div class="max-w-2xl mx-auto">
-            <h1 class="text-3xl font-bold text-gray-900 mb-6">{{ __('messages.edit_budget') }}</h1>
+    <div class="py-10 bg-slate-50/70 min-h-[calc(100vh-80px)]">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            <form method="POST" action="{{ route('budgets.update', $budget) }}" class="space-y-4 bg-white rounded-xl p-6 shadow-sm">
-                @csrf
-                @method('PUT')
-
+            <!-- Page Header & Back Button -->
+            <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700">{{ __('messages.name') }}</label>
-                    <input id="name" name="name" type="text" value="{{ old('name', $budget->name) }}" class="mt-1 w-full rounded-lg border-gray-300">
-                    <x-input-error :messages="$errors->get('name')" />
+                    <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 font-semibold text-xs uppercase tracking-wider shadow-xs transition-all duration-200 active:scale-95 mb-3 group">
+                        <svg class="w-4 h-4 text-purple-900 transition-transform group-hover:-translate-x-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                        </svg>
+                        <span>{{ __('messages.back_to_list') }}</span>
+                    </a>
+                    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">{{ __('messages.edit_budget') }}</h1>
                 </div>
+            </div>
 
-                <div>
-                    <label for="amount" class="block text-sm font-medium text-gray-700">{{ __('messages.amount') }}</label>
-                    <input id="amount" name="amount" type="number" step="0.01" value="{{ old('amount', $budget->amount) }}" class="mt-1 w-full rounded-lg border-gray-300">
-                    <x-input-error :messages="$errors->get('amount')" />
-                </div>
+            <!-- Reusable Budget Form Component -->
+            <x-budget-form :budget="$budget" :action="route('budgets.update', $budget)" method="PUT" />
 
-                <div>
-                    <label for="description" class="block text-sm font-medium text-gray-700">{{ __('messages.description') }}</label>
-                    <textarea id="description" name="description" class="mt-1 w-full rounded-lg border-gray-300">{{ old('description', $budget->description) }}</textarea>
-                    <x-input-error :messages="$errors->get('description')" />
-                </div>
-
-                <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-white">{{ __('messages.update_budget') }}</button>
-            </form>
         </div>
     </div>
 @endsection

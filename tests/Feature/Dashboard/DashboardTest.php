@@ -12,10 +12,8 @@ it('shows the dashboard for verified users', function () {
 
     $this->get(route('dashboard'))
         ->assertSuccessful()
-        ->assertSee(__('messages.welcome_title', ['name' => $user->name]))
-        ->assertSee(__('messages.incomes'))
-        ->assertSee(__('messages.expenses'))
-        ->assertSee(__('messages.balance'));
+        ->assertSee(__('messages.manage_budgets_title'))
+        ->assertSee(__('messages.create_budget'));
 });
 
 it('displays flash status messages on the dashboard', function () {

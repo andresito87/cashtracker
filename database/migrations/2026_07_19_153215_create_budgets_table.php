@@ -13,11 +13,14 @@ return new class extends Migration
     {
         Schema::create('budgets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->decimal('amount', 10, 2);
+            $table->string('currency', 3)->default('EUR');
+            $table->enum('type', ['general', 'goal'])->default('general');
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->text('description')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

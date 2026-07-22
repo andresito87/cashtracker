@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\BudgetType;
+use App\Enums\Currency;
 use App\Models\Budget;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -22,7 +24,49 @@ class BudgetFactory extends Factory
             'user_id' => User::factory(),
             'name' => fake()->words(3, true),
             'amount' => fake()->randomFloat(2, 10, 5000),
+            'currency' => Currency::EUR,
+            'type' => BudgetType::General,
             'description' => fake()->optional()->sentence(),
         ];
+    }
+
+    /**
+     * Indicate that the budget is in Euros.
+     */
+    public function eur(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'currency' => Currency::EUR,
+        ]);
+    }
+
+    /**
+     * Indicate that the budget is in US Dollars.
+     */
+    public function usd(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'currency' => Currency::USD,
+        ]);
+    }
+
+    /**
+     * Indicate that the budget is a goal budget.
+     */
+    public function goal(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'type' => BudgetType::Goal,
+        ]);
+    }
+
+    /**
+     * Indicate that the budget is a general budget.
+     */
+    public function general(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'type' => BudgetType::General,
+        ]);
     }
 }

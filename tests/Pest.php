@@ -66,6 +66,8 @@ function validBudgetPayload(array $overrides = []): array
     return array_merge([
         'name' => 'Monthly Groceries',
         'amount' => 350.50,
+        'currency' => 'EUR',
+        'type' => 'general',
         'description' => 'Food and household items',
     ], $overrides);
 }

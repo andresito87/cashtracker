@@ -35,15 +35,15 @@ it('loads dashboard in different languages', function () {
     $this->actingAs($user)
         ->withSession(['locale' => 'es', 'status' => 'Operación exitosa', 'status_type' => 'success'])
         ->get(route('dashboard'))
-        ->assertSee(__('messages.incomes'))
-        ->assertSee(__('messages.expenses'))
+        ->assertSee(__('messages.manage_budgets_title'))
+        ->assertSee(__('messages.create_budget'))
         ->assertSee('Operación exitosa');
 
     $this->actingAs($user)
         ->withSession(['locale' => 'en', 'status' => 'Operation successful', 'status_type' => 'success'])
         ->get(route('dashboard'))
-        ->assertSee(__('messages.incomes'))
-        ->assertSee(__('messages.expenses'))
+        ->assertSee(__('messages.manage_budgets_title'))
+        ->assertSee(__('messages.create_budget'))
         ->assertSee('Operation successful');
 });
 

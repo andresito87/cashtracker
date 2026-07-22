@@ -63,9 +63,7 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [BudgetController::class, 'index'])->name('dashboard');
 
     Route::get('/settings', function () {
         return redirect()->route('dashboard');
