@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use App\Enums\BudgetType;
-use App\Enums\Currency;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -27,7 +26,6 @@ class BudgetRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'decimal:0,2', 'min:0.01'],
-            'currency' => ['required', Rule::enum(Currency::class)],
             'type' => ['required', Rule::enum(BudgetType::class)],
             'description' => ['nullable', 'string', 'max:1000'],
         ];
@@ -46,8 +44,6 @@ class BudgetRequest extends FormRequest
             'amount.numeric' => __('messages.validation_amount_numeric'),
             'amount.decimal' => __('messages.validation_amount_decimal'),
             'amount.min' => __('messages.validation_amount_min'),
-            'currency.required' => __('messages.validation_currency_required'),
-            'currency.enum' => __('messages.validation_currency_enum'),
             'type.required' => __('messages.validation_type_required'),
             'type.enum' => __('messages.validation_type_enum'),
         ];

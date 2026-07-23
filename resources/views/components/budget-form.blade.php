@@ -1,26 +1,10 @@
-@php
-	use App\Enums\BudgetType;
-	use App\Enums\Currency;
-@endphp
-@props([
-    'budget' => null,
-    'action',
-    'method' => 'POST',
-])
-
-@php
-	$isEdit = $budget && $budget->exists;
-	$submitText = $isEdit ? __('messages.update_budget') : __('messages.save_budget');
-	$loadingText = $isEdit ? __('messages.updating_budget') : __('messages.saving_budget');
-	$currentType = old('type', $budget?->type?->value ?? $budget?->type ?? BudgetType::General->value);
-	$currentCurrency = old('currency', $budget?->currency?->value ?? $budget?->currency ?? Currency::EUR->value);
-@endphp
+@use('App\Enums\BudgetType')
 
 <form method="POST" action="{{ $action }}"
       class="bg-white border border-purple-900/10 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6 select-none">
 	@csrf
-	@if (strtoupper($method) !== 'POST')
-		@method($method)
+	@if ($methodOverride)
+		@method($methodOverride)
 	@endif
 
 	<!-- Budget Name -->
@@ -39,17 +23,17 @@
 			name="name"
 			type="text"
 			required
-			value="{{ old('name', $budget?->name) }}"
+			value="{{ $name }}"
 			placeholder="{{ __('messages.budget_name_placeholder') }}"
 			class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 bg-gray-50/40 focus:outline-none focus:ring-2 focus:ring-purple-900/20 transition-all duration-200"
 		>
 		<x-input-error :messages="$errors->get('name')" class="mt-1.5"/>
 	</div>
 
-	<!-- Amount & Currency & Type Grid -->
-	<div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-		<!-- Amount & Currency attached input -->
-		<div class="sm:col-span-2">
+	<!-- Amount & Type Grid -->
+	<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+		<!-- Amount -->
+		<div class="sm:col-span-1">
 			<label for="amount" class="flex items-center gap-2 text-sm font-semibold text-gray-800 mb-1.5">
 				<svg class="w-4 h-4 text-purple-900/70 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
 				     viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -67,26 +51,15 @@
 					step="0.01"
 					min="0"
 					required
-					value="{{ old('amount', $budget?->amount) }}"
+					value="{{ $amount }}"
 					placeholder="{{ __('messages.budget_amount_placeholder') }}"
 					class="w-full px-4 py-2.5 bg-transparent border-0 text-gray-900 focus:outline-none focus:ring-0"
 				>
-				<select
-					id="currency"
-					name="currency"
-					required
-					class="bg-gray-100/90 hover:bg-gray-200/80 text-gray-800 text-sm font-bold border-l border-gray-200 px-3 py-2.5 focus:outline-none cursor-pointer transition-colors"
-				>
-					@foreach (Currency::cases() as $currency)
-						<option
-							value="{{ $currency->value }}" {{ $currentCurrency === $currency->value ? 'selected' : '' }}>
-							{{ $currency->symbol() }} ({{ $currency->value }})
-						</option>
-					@endforeach
-				</select>
+				<span class="bg-gray-100/90 text-gray-800 text-sm font-bold border-l border-gray-200 px-4 py-2.5 flex items-center shrink-0 select-none">
+					{{ $userCurrencySymbol }}
+				</span>
 			</div>
 			<x-input-error :messages="$errors->get('amount')" class="mt-1.5"/>
-			<x-input-error :messages="$errors->get('currency')" class="mt-1.5"/>
 		</div>
 
 		<!-- Type -->
@@ -115,7 +88,7 @@
 							class="font-bold block mb-1.5 text-purple-300 border-b border-purple-800/50 pb-1">{{ __('messages.type') }}</span>
 						<span class="block mb-1"><strong
 								class="text-purple-200">{{ __('messages.type_general') }}:</strong> {{ __('messages.type_help_general') }}</span>
-						<span class="block"><strong class="text-purple-200">{{ __('messages.type_goal') }}:</strong> {{ __('messages.type_help_goal') }}</span>
+						<span class="block"><strong class="text-purple-200">{{ __('messages.type_help_goal') }}:</strong> {{ __('messages.type_help_goal') }}</span>
 					</span>
 				</span>
 			</label>
@@ -157,8 +130,8 @@
 			name="description"
 			rows="3"
 			placeholder="{{ __('messages.budget_description_placeholder') }}"
-			class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 bg-gray-50/40 focus:bg-white focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-900/20 transition-all duration-200 resize-y"
-		>{{ old('description', $budget?->description) }}</textarea>
+			class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 bg-gray-50/40 focus:outline-none focus:ring-2 focus:ring-purple-900/20 transition-all duration-200 resize-y"
+		>{{ $description }}</textarea>
 		<x-input-error :messages="$errors->get('description')" class="mt-1.5"/>
 	</div>
 

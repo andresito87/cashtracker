@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Currency;
 use App\Notifications\VerifyEmail;
 use Carbon\Carbon;
 use Database\Factories\UserFactory;
@@ -19,6 +20,7 @@ use Illuminate\Notifications\Notifiable;
  * @property int $id
  * @property string $name
  * @property string $email
+ * @property Currency $currency
  * @property string|null $email_verified_at
  * @property string $password
  * @property string $role
@@ -29,7 +31,7 @@ use Illuminate\Notifications\Notifiable;
  * @mixin Builder
  * @mixin Model
  */
-#[Fillable(['name', 'email', 'password', 'role'])]
+#[Fillable(['name', 'email', 'password', 'role', 'currency'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -52,6 +54,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'currency' => Currency::class,
         ];
     }
 

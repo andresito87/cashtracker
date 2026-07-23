@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Currency;
 use App\Models\User;
 use App\Notifications\VerifyEmail;
 use Illuminate\Auth\Events\Registered;
@@ -24,6 +25,7 @@ it('registers a new user and redirects to email verification notice', function (
 
     $this->post(route('register.store'), validRegistrationPayload([
         'email' => 'new-user@example.com',
+        'currency' => 'USD',
     ]))
         ->assertRedirect(route('verification.notice'));
 
@@ -31,6 +33,7 @@ it('registers a new user and redirects to email verification notice', function (
 
     expect($user)->not->toBeNull()
         ->and($user->role)->toBe('user')
+        ->and($user->currency)->toBe(Currency::USD)
         ->and($user->email_verified_at)->toBeNull();
 
     $this->assertAuthenticatedAs($user);
@@ -52,7 +55,14 @@ it('dispatches the registered event when a user signs up', function () {
 
 it('validates registration input', function () {
     $this->post(route('register.store'))
-        ->assertSessionHasErrors(['name', 'email', 'password']);
+        ->assertSessionHasErrors(['name', 'email', 'currency', 'password']);
+});
+
+it('validates invalid currency during registration', function () {
+    $this->post(route('register.store'), validRegistrationPayload([
+        'currency' => 'INVALID',
+    ]))
+        ->assertSessionHasErrors(['currency']);
 });
 
 it('requires a unique email during registration', function () {

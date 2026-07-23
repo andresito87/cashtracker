@@ -13,14 +13,29 @@ class SetLocale
      */
     public function handle(Request $request, Closure $next): Response
     {
+        $locale = null;
+
+        // 1. Check if locale is explicitly passed in the URL query string (?lang=es|en)
         if ($request->has('lang')) {
-            $locale = $request->query('lang');
-            if (in_array($locale, ['en', 'es'])) {
-                session(['locale' => $locale]);
+            $queryLocale = $request->query('lang');
+            if (in_array($queryLocale, ['en', 'es'])) {
+                $locale = $queryLocale;
+                if ($request->hasSession()) {
+                    session(['locale' => $queryLocale]);
+                }
             }
         }
 
-        $locale = session('locale', config('app.locale'));
+        // 2. Check if a previously selected locale exists in the user session
+        if (! $locale && $request->hasSession()) {
+            $locale = session('locale');
+        }
+
+        // 3. Fallback to default application locale if no valid locale was found
+        if (! in_array($locale, ['en', 'es'])) {
+            $locale = config('app.locale', 'es');
+        }
+
         app()->setLocale($locale);
 
         return $next($request);

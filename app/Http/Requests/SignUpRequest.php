@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\Currency;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class SignUpRequest extends FormRequest
@@ -25,6 +27,8 @@ class SignUpRequest extends FormRequest
             'email.required' => __('validation.required', ['attribute' => __('validation.attributes.email')]),
             'email.email' => __('validation.email', ['attribute' => __('validation.attributes.email')]),
             'email.unique' => __('validation.unique', ['attribute' => __('validation.attributes.email')]),
+            'currency.required' => __('messages.validation_currency_required'),
+            'currency.enum' => __('messages.validation_currency_enum'),
             'password.required' => __('validation.required', ['attribute' => __('validation.attributes.password')]),
             'password.min' => __('validation.min.string', ['attribute' => __('validation.attributes.password'), 'min' => 8]),
             'password.max' => __('validation.max.string', ['attribute' => __('validation.attributes.password'), 'max' => 100]),
@@ -47,6 +51,7 @@ class SignUpRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'min:2', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:254', 'unique:users'],
+            'currency' => ['required', Rule::enum(Currency::class)],
             'password' => [
                 'required',
                 'confirmed',

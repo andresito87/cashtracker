@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Currency;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -17,25 +18,28 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Andrés Podadera',
                 'email' => 'andres@example.com',
+                'currency' => Currency::EUR,
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ],
             [
                 'name' => 'María García',
                 'email' => 'maria@example.com',
+                'currency' => Currency::USD,
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ],
             [
                 'name' => 'Carlos Rodríguez',
                 'email' => 'carlos@example.com',
+                'currency' => Currency::EUR,
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ],
         ];
 
         foreach ($users as $userData) {
-            User::firstOrCreate(
+            User::updateOrCreate(
                 ['email' => $userData['email']],
                 $userData
             );

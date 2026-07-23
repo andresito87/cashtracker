@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Budget;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 class BudgetPolicy
 {
@@ -19,9 +20,11 @@ class BudgetPolicy
     /**
      * Determine whether the user can view a specific budget.
      */
-    public function view(User $user, Budget $budget): bool
+    public function view(User $user, Budget $budget): Response
     {
-        return $user->id === $budget->user_id;
+        return $user->id === $budget->user_id
+            ? Response::allow()
+            : Response::deny(__('messages.error_403_subtitle'));
     }
 
     /**
@@ -36,16 +39,20 @@ class BudgetPolicy
     /**
      * Determine whether the user can update a budget.
      */
-    public function update(User $user, Budget $budget): bool
+    public function update(User $user, Budget $budget): Response
     {
-        return $user->id === $budget->user_id;
+        return $user->id === $budget->user_id
+            ? Response::allow()
+            : Response::deny(__('messages.error_403_subtitle'));
     }
 
     /**
      * Determine whether the user can delete a budget.
      */
-    public function delete(User $user, Budget $budget): bool
+    public function delete(User $user, Budget $budget): Response
     {
-        return $user->id === $budget->user_id;
+        return $user->id === $budget->user_id
+            ? Response::allow()
+            : Response::deny(__('messages.error_403_subtitle'));
     }
 }

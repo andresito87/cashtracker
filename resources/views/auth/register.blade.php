@@ -1,5 +1,7 @@
 @extends('layouts.auth')
 
+@use('App\Enums\Currency')
+
 @section('title', __('messages.register'))
 
 @section('auth-contents')
@@ -35,6 +37,35 @@
 		</div>
 
 		<x-input-error :messages="$errors->get('email')" />
+
+		<div class="space-y-2">
+			<label class="font-bold text-2xl block" for="currency">{{ __('messages.currency') }}</label>
+
+			<div class="relative">
+				<select
+					id="currency"
+					name="currency"
+					class="w-full border border-gray-300 p-3 pr-10 rounded-lg bg-white appearance-none cursor-pointer"
+				>
+					@foreach (Currency::cases() as $currency)
+						<option
+							value="{{ $currency->value }}"
+							{{ old('currency', Currency::EUR->value) === $currency->value ? 'selected' : '' }}
+						>
+							{{ $currency->label() }}
+						</option>
+					@endforeach
+				</select>
+				<div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-gray-500">
+					<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+					     stroke-width="2" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+					</svg>
+				</div>
+			</div>
+		</div>
+
+		<x-input-error :messages="$errors->get('currency')" />
 
 		<div class="space-y-2">
 			<label class="font-bold text-2xl block" for="password">{{ __('messages.password') }}</label>

@@ -27,6 +27,7 @@ class RegisterController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => $data['password'],
+            'currency' => $data['currency'],
             'role' => 'user',
         ]);
 

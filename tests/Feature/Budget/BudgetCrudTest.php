@@ -43,11 +43,10 @@ it('lists all budgets for admin users', function () {
 });
 
 it('creates a budget for the authenticated user', function () {
-    $user = actingAsVerifiedUser();
+    $user = actingAsVerifiedUser(['currency' => Currency::USD]);
 
     $this->post(route('budgets.store'), validBudgetPayload([
         'name' => 'Travel Fund',
-        'currency' => 'USD',
         'type' => 'goal',
     ]))
         ->assertRedirect(route('dashboard'))
@@ -58,22 +57,19 @@ it('creates a budget for the authenticated user', function () {
     expect($budget)->not->toBeNull()
         ->and($budget->user_id)->toBe($user->id)
         ->and($budget->name)->toBe('Travel Fund')
-        ->and($budget->currency)->toBe(Currency::USD)
         ->and($budget->type)->toBe(BudgetType::Goal)
         ->and($budget->formattedAmount())->toBe('350.50 $');
 });
 
 it('updates an owned budget', function () {
-    $user = actingAsVerifiedUser();
+    $user = actingAsVerifiedUser(['currency' => Currency::USD]);
     $budget = Budget::factory()->for($user)->create([
-        'currency' => Currency::EUR,
         'type' => BudgetType::General,
     ]);
 
     $this->put(route('budgets.update', $budget), validBudgetPayload([
         'name' => 'Updated Budget',
         'amount' => 500,
-        'currency' => 'USD',
         'type' => 'goal',
     ]))
         ->assertRedirect(route('budgets.show', $budget))
@@ -81,7 +77,6 @@ it('updates an owned budget', function () {
 
     expect($budget->fresh()->name)->toBe('Updated Budget')
         ->and($budget->fresh()->amount)->toBe('500.00')
-        ->and($budget->fresh()->currency)->toBe(Currency::USD)
         ->and($budget->fresh()->type)->toBe(BudgetType::Goal)
         ->and($budget->fresh()->formattedAmount())->toBe('500.00 $');
 });
@@ -101,15 +96,7 @@ it('validates budget input on create', function () {
     actingAsVerifiedUser();
 
     $this->post(route('budgets.store'))
-        ->assertSessionHasErrors(['name', 'amount', 'currency', 'type']);
-});
-
-it('rejects invalid budget currencies', function () {
-    actingAsVerifiedUser();
-
-    $this->post(route('budgets.store'), validBudgetPayload([
-        'currency' => 'JPY',
-    ]))->assertSessionHasErrors(['currency']);
+        ->assertSessionHasErrors(['name', 'amount', 'type']);
 });
 
 it('rejects invalid budget types', function () {

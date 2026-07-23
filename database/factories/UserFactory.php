@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Currency;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -27,6 +28,7 @@ class UserFactory extends Factory
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'currency' => Currency::EUR,
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'role' => 'user',
@@ -51,6 +53,26 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'role' => 'admin',
+        ]);
+    }
+
+    /**
+     * Indicate that the user uses US Dollars.
+     */
+    public function usd(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'currency' => Currency::USD,
+        ]);
+    }
+
+    /**
+     * Indicate that the user uses Euros.
+     */
+    public function eur(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'currency' => Currency::EUR,
         ]);
     }
 }

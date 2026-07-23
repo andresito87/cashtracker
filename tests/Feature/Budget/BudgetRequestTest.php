@@ -42,7 +42,6 @@ it('provides custom localized validation messages', function () {
     $response->assertSessionHasErrors([
         'name' => __('messages.validation_name_required'),
         'amount' => __('messages.validation_amount_required'),
-        'currency' => __('messages.validation_currency_required'),
         'type' => __('messages.validation_type_required'),
     ]);
 });

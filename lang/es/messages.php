@@ -155,4 +155,9 @@ return [
     'budget_created' => 'Presupuesto creado con éxito.',
     'budget_updated' => 'Presupuesto actualizado con éxito.',
     'budget_deleted' => 'Presupuesto eliminado con éxito.',
+    'error_403_title' => 'Acceso Denegado',
+    'error_403_subtitle' => 'No tienes permiso para ver o gestionar este presupuesto.',
+    'error_404_title' => 'Página No Encontrada',
+    'error_404_subtitle' => 'No se encontró la página o el presupuesto solicitado.',
+    'error_back_dashboard' => 'Volver al Panel Principal',
 ];

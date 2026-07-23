@@ -20,9 +20,9 @@ it('allows owners to view update and delete their budgets', function () {
     $owner = User::factory()->create();
     $budget = Budget::factory()->for($owner)->create();
 
-    expect($this->policy->view($owner, $budget))->toBeTrue()
-        ->and($this->policy->update($owner, $budget))->toBeTrue()
-        ->and($this->policy->delete($owner, $budget))->toBeTrue();
+    expect($this->policy->view($owner, $budget)->allowed())->toBeTrue()
+        ->and($this->policy->update($owner, $budget)->allowed())->toBeTrue()
+        ->and($this->policy->delete($owner, $budget)->allowed())->toBeTrue();
 });
 
 it('denies non owners from viewing updating or deleting budgets', function () {
@@ -30,9 +30,9 @@ it('denies non owners from viewing updating or deleting budgets', function () {
     $otherUser = User::factory()->create();
     $budget = Budget::factory()->for($owner)->create();
 
-    expect($this->policy->view($otherUser, $budget))->toBeFalse()
-        ->and($this->policy->update($otherUser, $budget))->toBeFalse()
-        ->and($this->policy->delete($otherUser, $budget))->toBeFalse();
+    expect($this->policy->view($otherUser, $budget)->denied())->toBeTrue()
+        ->and($this->policy->update($otherUser, $budget)->denied())->toBeTrue()
+        ->and($this->policy->delete($otherUser, $budget)->denied())->toBeTrue();
 });
 
 it('allows any authenticated user to create budgets', function () {

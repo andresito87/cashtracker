@@ -155,4 +155,9 @@ return [
     'budget_created' => 'Budget created successfully.',
     'budget_updated' => 'Budget updated successfully.',
     'budget_deleted' => 'Budget deleted successfully.',
+    'error_403_title' => 'Access Denied',
+    'error_403_subtitle' => 'You do not have permission to view or manage this budget.',
+    'error_404_title' => 'Page Not Found',
+    'error_404_subtitle' => 'The requested page or budget could not be found.',
+    'error_back_dashboard' => 'Back to Dashboard',
 ];
