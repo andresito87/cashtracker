@@ -1,12 +1,14 @@
 <?php
 
+use App\Models\Budget;
+
 it('redirects guests to the login page', function () {
     $this->get(route('dashboard'))
         ->assertRedirect(route('login'));
 });
 
 it('shows the dashboard for verified users', function () {
-    $user = actingAsVerifiedUser([
+    actingAsVerifiedUser([
         'name' => 'Alejandro Rivera',
     ]);
 
@@ -27,4 +29,21 @@ it('displays flash status messages on the dashboard', function () {
         ->get(route('dashboard'))
         ->assertSuccessful()
         ->assertSee('Operation successful');
+});
+
+it('displays only the authenticated users budgets on the dashboard', function () {
+    $user = actingAsVerifiedUser();
+    $otherUser = createVerifiedUser();
+
+    $ownBudget = Budget::factory()->for($user)->create(['name' => 'Mi Presupuesto']);
+    $otherBudget = Budget::factory()->for($otherUser)->create(['name' => 'Otro Presupuesto']);
+
+    $response = $this->get(route('dashboard'))
+        ->assertSuccessful()
+        ->assertSee('Mi Presupuesto')
+        ->assertDontSee('Otro Presupuesto');
+
+    $response->assertViewHas('budgets', function ($budgets) use ($ownBudget, $otherBudget) {
+        return $budgets->contains($ownBudget) && ! $budgets->contains($otherBudget);
+    });
 });

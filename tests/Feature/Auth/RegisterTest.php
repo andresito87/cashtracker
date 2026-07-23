@@ -36,6 +36,11 @@ it('registers a new user and redirects to email verification notice', function (
         ->and($user->currency)->toBe(Currency::USD)
         ->and($user->email_verified_at)->toBeNull();
 
+    $this->assertDatabaseHas('users', [
+        'email' => 'new-user@example.com',
+        'currency' => 'USD',
+    ]);
+
     $this->assertAuthenticatedAs($user);
 
     /** @noinspection PhpUnhandledExceptionInspection */

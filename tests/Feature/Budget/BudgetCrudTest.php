@@ -59,6 +59,12 @@ it('creates a budget for the authenticated user', function () {
         ->and($budget->name)->toBe('Travel Fund')
         ->and($budget->type)->toBe(BudgetType::Goal)
         ->and($budget->formattedAmount())->toBe('350.50 $');
+
+    $this->assertDatabaseHas('budgets', [
+        'user_id' => $user->id,
+        'name' => 'Travel Fund',
+        'type' => BudgetType::Goal->value,
+    ]);
 });
 
 it('updates an owned budget', function () {
@@ -79,6 +85,13 @@ it('updates an owned budget', function () {
         ->and($budget->fresh()->amount)->toBe('500.00')
         ->and($budget->fresh()->type)->toBe(BudgetType::Goal)
         ->and($budget->fresh()->formattedAmount())->toBe('500.00 $');
+
+    $this->assertDatabaseHas('budgets', [
+        'id' => $budget->id,
+        'name' => 'Updated Budget',
+        'amount' => 500,
+        'type' => BudgetType::Goal->value,
+    ]);
 });
 
 it('soft deletes an owned budget', function () {
@@ -90,12 +103,31 @@ it('soft deletes an owned budget', function () {
         ->assertSessionHas('status', __('messages.budget_deleted'));
 
     $this->assertSoftDeleted($budget);
+    $this->assertSoftDeleted('budgets', [
+        'id' => $budget->id,
+    ]);
 });
 
 it('validates budget input on create', function () {
     actingAsVerifiedUser();
 
-    $this->post(route('budgets.store'))
+    $this->from(route('budgets.create'))
+        ->post(route('budgets.store'))
+        ->assertRedirect(route('budgets.create'))
+        ->assertSessionHasErrors(['name', 'amount', 'type']);
+});
+
+it('validates budget input on update', function () {
+    $user = actingAsVerifiedUser();
+    $budget = Budget::factory()->for($user)->create();
+
+    $this->from(route('budgets.edit', $budget))
+        ->put(route('budgets.update', $budget), [
+            'name' => '',
+            'amount' => '',
+            'type' => '',
+        ])
+        ->assertRedirect(route('budgets.edit', $budget))
         ->assertSessionHasErrors(['name', 'amount', 'type']);
 });
 
@@ -129,6 +161,19 @@ it('shows an owned budget detail page', function () {
     $this->get(route('budgets.show', $budget))
         ->assertSuccessful()
         ->assertSee('Emergency Fund');
+});
+
+it('shows the edit budget form for the owner', function () {
+    $user = actingAsVerifiedUser();
+    $budget = Budget::factory()->for($user)->create([
+        'name' => 'Viaje a las Vegas',
+        'amount' => 1000,
+    ]);
+
+    $this->get(route('budgets.edit', $budget))
+        ->assertSuccessful()
+        ->assertSee('Viaje a las Vegas')
+        ->assertSee('1000');
 });
 
 it('displays translated empty state message in Spanish and English when user has no budgets', function () {

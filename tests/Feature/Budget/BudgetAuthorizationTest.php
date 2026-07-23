@@ -3,17 +3,56 @@
 use App\Models\Budget;
 use Illuminate\Support\Facades\Gate;
 
-it('forbids regular users from viewing another users budget', function () {
-    $owner = createVerifiedUser();
+it('forbids a regular user from viewing another users budget and renders custom 403 page', function () {
     $intruder = actingAsVerifiedUser();
-    $budget = Budget::factory()->for($owner)->create();
+    $owner = createVerifiedUser();
+    $budget = Budget::factory()->for($owner)->create(['name' => 'Secret Budget']);
 
-    $this->get(route('budgets.show', $budget))->assertForbidden();
-    $this->get(route('budgets.edit', $budget))->assertForbidden();
-    $this->put(route('budgets.update', $budget), validBudgetPayload())->assertForbidden();
-    $this->delete(route('budgets.destroy', $budget))->assertForbidden();
+    $response = $this->get(route('budgets.show', $budget));
+
+    $response->assertForbidden()
+        ->assertSee(__('messages.error_403_title'))
+        ->assertSee(__('messages.error_back_dashboard'));
 
     expect(Gate::forUser($intruder)->allows('view', $budget))->toBeFalse();
+});
+
+it('forbids a regular user from editing or updating another users budget and renders custom 403 page', function () {
+    actingAsVerifiedUser();
+    $owner = createVerifiedUser();
+    $budget = Budget::factory()->for($owner)->create(['name' => 'Secret Budget']);
+
+    $this->get(route('budgets.edit', $budget))
+        ->assertForbidden()
+        ->assertSee(__('messages.error_403_title'));
+
+    $this->put(route('budgets.update', $budget), validBudgetPayload(['name' => 'Not Owned Budget']))
+        ->assertForbidden()
+        ->assertSee(__('messages.error_403_title'));
+
+    expect($budget->fresh()->name)->toBe('Secret Budget');
+
+    $this->assertDatabaseHas('budgets', [
+        'id' => $budget->id,
+        'name' => 'Secret Budget',
+    ]);
+});
+
+it('forbids a regular user from deleting another users budget and renders custom 403 page', function () {
+    actingAsVerifiedUser();
+    $owner = createVerifiedUser();
+    $budget = Budget::factory()->for($owner)->create(['name' => 'Secret Budget']);
+
+    $this->delete(route('budgets.destroy', $budget))
+        ->assertForbidden()
+        ->assertSee(__('messages.error_403_title'));
+
+    expect($budget->fresh()->deleted_at)->toBeNull();
+
+    $this->assertDatabaseHas('budgets', [
+        'id' => $budget->id,
+        'deleted_at' => null,
+    ]);
 });
 
 it('allows admins to bypass budget ownership policies', function () {
