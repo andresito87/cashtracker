@@ -6,6 +6,8 @@
 
 	<title>{{ config('app.name', 'CashTracker') }} - @yield('title')</title>
 
+	<meta name="csrf-token" content="{{ csrf_token() }}">
+
 	<link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
 
 	@fonts
@@ -23,7 +25,8 @@
 		<div class="flex justify-between items-center h-16 sm:h-20">
 			<!-- Logo -->
 			<div class="shrink-0 flex items-center">
-				<a href="{{ route('welcome') }}" class="flex items-center gap-2 group transition-transform duration-200 active:scale-95">
+				<a href="{{ route('welcome') }}"
+				   class="flex items-center gap-2 group transition-transform duration-200 active:scale-95">
 					<img src="{{ asset('logo.png') }}" alt="CashTracker Logo" class="h-8 sm:h-10 w-auto">
 				</a>
 			</div>
@@ -33,7 +36,7 @@
 				<!-- Navigation Links -->
 				<nav class="flex items-center space-x-2 sm:space-x-4">
 					@auth
-						<x-user-menu />
+						<x-user-menu/>
 					@else
 						@unless(request()->routeIs('welcome'))
 							<a href="{{ route('login') }}"
@@ -72,7 +75,8 @@
 </main>
 
 <!-- Footer -->
-<footer class="py-6 sm:py-8 bg-[#1b0e35] border-t border-purple-900/30 text-center text-xs text-purple-200/70 mt-auto select-none">
+<footer
+	class="py-6 sm:py-8 bg-[#1b0e35] border-t border-purple-900/30 text-center text-xs text-purple-200/70 mt-auto select-none">
 	<div class="w-full px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
 		<div class="flex items-center">
 			<a href="{{ route('welcome') }}" class="inline-block transition-opacity hover:opacity-100 opacity-90">

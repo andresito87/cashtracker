@@ -21,7 +21,7 @@
 /storage/*.key
 /storage/pail
 /vendor
-_ide_helper.php
+_ide_helper*.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
@@ -35,4 +35,5 @@ Thumbs.db
 /.kiro/
 /AGENTS.md
 /CLAUDE.md
-
+/.windsurf/
+/.codegraph/

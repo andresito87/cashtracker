@@ -3,6 +3,7 @@
 use App\Enums\BudgetType;
 use App\Enums\Currency;
 use App\Models\Budget;
+use Inertia\Testing\AssertableInertia as Assert;
 
 it('lists only the authenticated users budgets for regular users', function () {
     $user = actingAsVerifiedUser();
@@ -160,7 +161,14 @@ it('shows an owned budget detail page', function () {
 
     $this->get(route('budgets.show', $budget))
         ->assertSuccessful()
-        ->assertSee('Emergency Fund');
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Budgets/Show')
+            ->has('budget', fn (Assert $page) => $page
+                ->where('id', $budget->id)
+                ->where('name', 'Emergency Fund')
+                ->etc()
+            )
+        );
 });
 
 it('shows the edit budget form for the owner', function () {

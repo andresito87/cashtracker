@@ -7,6 +7,8 @@ use App\Models\Budget;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class BudgetController extends Controller
 {
@@ -58,11 +60,15 @@ class BudgetController extends Controller
     /**
      * Display the specified budget.
      */
-    public function show(Budget $budget): View
+    public function show(Budget $budget): Response
     {
         Gate::authorize('view', $budget);
 
-        return view('budgets.show', compact('budget'));
+        return Inertia::render('Budgets/Show', [
+            'budget' => array_merge($budget->toArray(), [
+                'formatted_amount' => $budget->formattedAmount(),
+            ]),
+        ]);
     }
 
     /**

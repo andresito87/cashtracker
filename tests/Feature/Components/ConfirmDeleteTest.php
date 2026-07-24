@@ -50,7 +50,9 @@ it('renders custom slot content when provided to the confirm delete component', 
         ->assertSee('Esta operación no se puede revertir bajo ningún concepto.', false);
 });
 
-it('displays the confirm delete modal and trigger button on budget detail page', function () {
+use Inertia\Testing\AssertableInertia as Assert;
+
+it('displays the budget detail page via inertia', function () {
     $user = actingAsVerifiedUser();
     $budget = Budget::factory()->for($user)->create([
         'name' => 'Vacaciones en París',
@@ -59,9 +61,12 @@ it('displays the confirm delete modal and trigger button on budget detail page',
     $response = $this->get(route('budgets.show', $budget));
 
     $response->assertSuccessful()
-        ->assertSee('command="show-modal"', false)
-        ->assertSee('commandfor="delete-budget-dialog-'.$budget->id.'"', false)
-        ->assertSee('id="delete-budget-dialog-'.$budget->id.'"', false)
-        ->assertSee(__('messages.confirm_delete_budget_title', ['name' => 'Vacaciones en París']))
-        ->assertSee(__('messages.confirm_delete_message'));
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Budgets/Show')
+            ->has('budget', fn (Assert $page) => $page
+                ->where('id', $budget->id)
+                ->where('name', 'Vacaciones en París')
+                ->etc()
+            )
+        );
 });
