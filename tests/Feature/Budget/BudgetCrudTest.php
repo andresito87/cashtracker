@@ -50,7 +50,7 @@ it('creates a budget for the authenticated user', function () {
         'name' => 'Travel Fund',
         'type' => 'goal',
     ]))
-        ->assertRedirect(route('dashboard'))
+        ->assertRedirect(route('budgets.show', Budget::query()->first()))
         ->assertSessionHas('status', __('messages.budget_created'));
 
     $budget = Budget::query()->first();
@@ -60,6 +60,10 @@ it('creates a budget for the authenticated user', function () {
         ->and($budget->name)->toBe('Travel Fund')
         ->and($budget->type)->toBe(BudgetType::Goal)
         ->and($budget->formattedAmount())->toBe('350.50 $');
+
+    app()->setLocale('es');
+    expect($budget->formattedAmount())->toBe('350,50 $');
+    app()->setLocale('en');
 
     $this->assertDatabaseHas('budgets', [
         'user_id' => $user->id,
@@ -86,6 +90,10 @@ it('updates an owned budget', function () {
         ->and($budget->fresh()->amount)->toBe('500.00')
         ->and($budget->fresh()->type)->toBe(BudgetType::Goal)
         ->and($budget->fresh()->formattedAmount())->toBe('500.00 $');
+
+    app()->setLocale('es');
+    expect($budget->fresh()->formattedAmount())->toBe('500,00 $');
+    app()->setLocale('en');
 
     $this->assertDatabaseHas('budgets', [
         'id' => $budget->id,

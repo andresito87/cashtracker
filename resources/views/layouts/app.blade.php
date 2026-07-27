@@ -31,7 +31,7 @@
 
 			<!-- User Profile & Header Actions -->
 			<div class="flex items-center space-x-3 sm:space-x-5">
-				<x-user-menu />
+				<x-user-menu/>
 
 				<!-- Language Switcher -->
 				<a href="{{ request()->fullUrlWithQuery(['lang' => app()->getLocale() === 'es' ? 'en' : 'es']) }}"
@@ -70,13 +70,14 @@
 </footer>
 
 <script>
-	document.addEventListener('DOMContentLoaded', function () {
-		// User Dropdown Menu Toggle
-		const menuBtn = document.getElementById('user-menu-button');
-		const menuDropdown = document.getElementById('user-menu-dropdown');
-		const chevron = document.getElementById('user-menu-chevron');
+	(function () {
+		function setupUserMenu() {
+			const menuBtn = document.getElementById('user-menu-button');
+			const menuDropdown = document.getElementById('user-menu-dropdown');
+			const chevron = document.getElementById('user-menu-chevron');
 
-		if (menuBtn && menuDropdown) {
+			if (!menuBtn || !menuDropdown) return;
+
 			function toggleMenu(show) {
 				if (show) {
 					menuDropdown.classList.remove('hidden');
@@ -88,6 +89,9 @@
 					if (chevron) chevron.classList.remove('rotate-180');
 				}
 			}
+
+			if (menuBtn.hasAttribute('data-has-listener')) return;
+			menuBtn.setAttribute('data-has-listener', 'true');
 
 			menuBtn.addEventListener('click', function (e) {
 				e.stopPropagation();
@@ -106,7 +110,45 @@
 					toggleMenu(false);
 				}
 			});
+
+			const menuItems = menuDropdown.querySelectorAll('a, button[type="submit"]');
+			menuItems.forEach(function (item) {
+				item.addEventListener('click', function (e) {
+					if (item.hasAttribute('data-clicked')) {
+						e.preventDefault();
+						e.stopPropagation();
+						return false;
+					}
+
+					item.setAttribute('data-clicked', 'true');
+
+					menuItems.forEach(function (el) {
+						el.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+					});
+
+					menuBtn.classList.add('opacity-75', 'cursor-not-allowed', 'pointer-events-none');
+
+					const svgIcon = item.querySelector('svg');
+					if (svgIcon) {
+						const spinner = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+						spinner.setAttribute('class', 'animate-spin w-4 h-4 text-purple-300 shrink-0');
+						spinner.setAttribute('fill', 'none');
+						spinner.setAttribute('viewBox', '0 0 24 24');
+						spinner.innerHTML = '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>';
+						svgIcon.replaceWith(spinner);
+					}
+				});
+			});
 		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', setupUserMenu);
+		} else {
+			setupUserMenu();
+		}
+	})();
+
+	document.addEventListener('DOMContentLoaded', function () {
 
 		// Double submission guard
 		document.querySelectorAll('form').forEach(function (form) {
@@ -116,8 +158,7 @@
 				const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
 				submitButtons.forEach(function (button) {
 					button.disabled = true;
-					button.style.pointerEvents = 'none';
-					button.classList.add('opacity-75', 'cursor-not-allowed');
+					button.classList.add('opacity-75', 'cursor-not-allowed', 'pointer-events-none');
 
 					const loadingText = button.getAttribute('data-loading-text');
 					if (loadingText) {
@@ -128,6 +169,10 @@
 							button.innerHTML = spinner + '<span>' + loadingText + '</span>';
 						}
 					}
+				});
+
+				form.querySelectorAll('a, button:not([type="submit"])').forEach(function (el) {
+					el.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
 				});
 			});
 		});

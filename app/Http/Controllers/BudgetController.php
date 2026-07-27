@@ -48,10 +48,10 @@ class BudgetController extends Controller
         // Use chained method to create a budget for the authenticated user
         // Via Eloquent relationships, this approach automatically sets the user_id field in the budgets table
         // to the ID of the authenticated user.
-        auth()->user()->budgets()->create($request->validated());
+        $budget = auth()->user()->budgets()->create($request->validated());
 
         return redirect()
-            ->route('dashboard')
+            ->route('budgets.show', $budget)
             ->with([
                 'status' => __('messages.budget_created'),
                 'status_type' => 'success',
@@ -65,6 +65,8 @@ class BudgetController extends Controller
     {
         Gate::authorize('view', $budget);
 
+        // Load the expenses relationship with the latest expenses first, so that the most recent expenses
+        // are displayed at the top of the list. We can access the expenses via $budget->expenses in the view.
         $budget->load(['expenses' => function ($query) {
             $query->latest();
         }]);

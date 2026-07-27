@@ -172,6 +172,8 @@ return [
     'edit_expense' => 'Editar Gasto',
     'delete_expense' => 'Eliminar Gasto',
     'no_expenses' => 'No hay gastos registrados en este presupuesto.',
+    'added_on' => 'Agregado el',
+    'spent' => 'Gastado',
     'error_403_title' => 'Acceso Denegado',
     'error_403_subtitle' => 'No tienes permiso para ver o gestionar este presupuesto.',
     'error_404_title' => 'Página No Encontrada',

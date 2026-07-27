@@ -55,8 +55,12 @@ class Budget extends Model
     public function formattedAmount(): string
     {
         $currencyEnum = $this->user?->currency ?? Currency::EUR;
+        $isSpanish = app()->getLocale() === 'es';
 
-        return number_format((float) $this->amount, 2).' '.$currencyEnum->symbol();
+        $decimalSeparator = $isSpanish ? ',' : '.';
+        $thousandsSeparator = $isSpanish ? '.' : ',';
+
+        return number_format((float) $this->amount, 2, $decimalSeparator, $thousandsSeparator).' '.$currencyEnum->symbol();
     }
 
     /**

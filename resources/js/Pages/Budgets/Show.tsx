@@ -3,8 +3,11 @@ import {Head, router, usePage} from '@inertiajs/react'
 import {route} from 'ziggy-js'
 import {Budget, Expense, SharedData} from '@/types'
 import {useTranslation} from '@/hooks/useTranslation'
+import {formatDate} from '@/utils/formatDate'
+import {formatCurrency} from '@/utils/formatCurrency'
 import {ConfirmDeleteModal} from '@/Components/ConfirmDeleteModal'
 import {ExpenseModal} from '@/Components/ExpenseModal'
+import {ProgressBar} from '@/Components/ProgressBar'
 import {useExpenseModalStore} from '@/store/expense-modal-store'
 import {Category} from "@/types/Category"
 import {getCategoryMeta} from '@/constants/category-config'
@@ -16,7 +19,7 @@ interface ShowProps {
 
 export const Show = ({budget, categories}: ShowProps) => {
 	const {flash, auth} = usePage<SharedData>().props
-	const {t} = useTranslation()
+	const {t, locale} = useTranslation()
 	const {openModal, setBudget, setCategories} = useExpenseModalStore()
 
 	useEffect(() => {
@@ -33,10 +36,7 @@ export const Show = ({budget, categories}: ShowProps) => {
 	const typeLabel = t(`type_${budget.type}`)
 	const currencySymbol = budget.currency_symbol || auth?.user?.currency_symbol || '€'
 
-	const formatCurrency = (val: number | string) => {
-		const amountNum = typeof val === 'string' ? parseFloat(val || '0') : val
-		return `${amountNum.toFixed(2)} ${currencySymbol}`
-	}
+	const formatCurrencyVal = (val: number | string) => formatCurrency(val, currencySymbol, locale)
 
 	const totalSpent = (budget.expenses || []).reduce(
 		(sum, exp) => sum + parseFloat(exp.amount || '0'),
@@ -49,11 +49,13 @@ export const Show = ({budget, categories}: ShowProps) => {
 	const handleDeleteBudget = () => {
 		setIsDeleting(true)
 		router.delete(route('budgets.destroy', budget.id), {
-			onFinish: () => {
-				setIsDeleting(false)
-				setIsDeleteModalOpen(false)
+				onFinish: () => {
+					setIsDeleting(false)
+					setIsDeleteModalOpen(false)
+				},
+				preserveScroll: true
 			},
-		})
+		)
 	}
 
 	const handleConfirmDeleteExpense = () => {
@@ -64,6 +66,7 @@ export const Show = ({budget, categories}: ShowProps) => {
 				setIsDeletingExpense(false)
 				setExpenseToDelete(null)
 			},
+			preserveScroll: true
 		})
 	}
 
@@ -90,6 +93,14 @@ export const Show = ({budget, categories}: ShowProps) => {
 					<div className="flex items-center justify-between">
 						<a
 							href={route('dashboard')}
+							onClick={(e) => {
+								if (e.currentTarget.getAttribute('data-clicked')) {
+									e.preventDefault();
+									return;
+								}
+								e.currentTarget.setAttribute('data-clicked', 'true');
+								e.currentTarget.classList.add('opacity-75', 'cursor-not-allowed', 'pointer-events-none');
+							}}
 							className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 font-bold text-xs uppercase tracking-wider shadow-2xs transition-all duration-200 active:scale-95 group"
 						>
 							<svg
@@ -131,6 +142,34 @@ export const Show = ({budget, categories}: ShowProps) => {
 							</div>
 
 							<div className="flex items-center gap-3">
+								<a
+									href={route('budgets.edit', budget.id)}
+									onClick={(e) => {
+										if (e.currentTarget.getAttribute('data-clicked')) {
+											e.preventDefault();
+											return;
+										}
+										e.currentTarget.setAttribute('data-clicked', 'true');
+										e.currentTarget.classList.add('opacity-75', 'cursor-not-allowed', 'pointer-events-none');
+									}}
+									className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-slate-50 text-gray-800 font-extrabold text-xs sm:text-sm shadow-xs hover:border-gray-300 transition-all duration-200 active:scale-95 inline-flex items-center gap-2 shrink-0 cursor-pointer"
+								>
+									<svg
+										className="w-4 h-4 text-purple-900 shrink-0"
+										fill="none"
+										viewBox="0 0 24 24"
+										stroke="currentColor"
+										strokeWidth="2.2"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
+										/>
+									</svg>
+									<span>{t('edit')}</span>
+								</a>
+
 								<button
 									type="button"
 									onClick={() => openModal(null)}
@@ -145,63 +184,44 @@ export const Show = ({budget, categories}: ShowProps) => {
 							</div>
 						</div>
 
-						{/* Budget Usage Progress Bar */}
-						<div className="mt-6 pt-6 border-t border-gray-100">
-							<div className="flex items-center justify-between text-xs font-bold mb-2">
-								<span className="text-gray-500 uppercase tracking-wider">Uso del presupuesto</span>
-								<span className={percentSpent > 90 ? 'text-rose-600' : 'text-purple-900'}>
-									{percentSpent.toFixed(0)}% consumido
-								</span>
+						{/* Budget Summary Section: Circular Chart (Left) & Metrics (Right) */}
+						<div className="mt-8 pt-8 border-t border-gray-100">
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+								{/* Left Column: Circular Progress Graphic */}
+								<div className="flex flex-col items-center justify-center p-4">
+									<ProgressBar percentage={percentSpent} label={t('spent')}/>
+								</div>
+
+								{/* Right Column: 3 Metric Blocks (Presupuesto, Gastado, Restante) */}
+								<div className="space-y-6 flex flex-col justify-center pl-0 md:pl-6">
+									<div className="flex items-baseline gap-2">
+										<span className="text-base sm:text-lg font-extrabold text-gray-900">
+											{t('amount')}:
+										</span>
+										<span className="text-xl sm:text-2xl font-black text-[#ea580c]">
+											{budget.formatted_amount || formatCurrencyVal(budgetAmount)}
+										</span>
+									</div>
+
+									<div className="flex items-baseline gap-2">
+										<span className="text-base sm:text-lg font-extrabold text-gray-900">
+											{t('landing_demo_expenses')}:
+										</span>
+										<span className="text-xl sm:text-2xl font-black text-[#ea580c]">
+											{formatCurrencyVal(totalSpent)}
+										</span>
+									</div>
+
+									<div className="flex items-baseline gap-2">
+										<span className="text-base sm:text-lg font-extrabold text-gray-900">
+											{t('balance')}:
+										</span>
+										<span className="text-xl sm:text-2xl font-black text-[#ea580c]">
+											{formatCurrencyVal(remaining)}
+										</span>
+									</div>
+								</div>
 							</div>
-							<div
-								className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
-								<div
-									className={`h-full rounded-full transition-all duration-500 ${
-										percentSpent > 100
-											? 'bg-rose-500'
-											: percentSpent > 80
-												? 'bg-amber-500'
-												: 'bg-linear-to-r from-purple-900 to-indigo-600'
-									}`}
-									style={{width: `${Math.min(100, percentSpent)}%`}}
-								/>
-							</div>
-						</div>
-					</div>
-
-					{/* 3 Metric Cards Grid */}
-					<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-						{/* Card 1: Presupuesto Total */}
-						<div
-							className="bg-white border border-purple-900/10 rounded-2xl p-5 shadow-2xs relative overflow-hidden group hover:border-purple-900/25 transition-all">
-							<span className="text-xs font-extrabold uppercase tracking-wider text-gray-400 block mb-1">
-								{t('amount')}
-							</span>
-							<p className="text-2xl sm:text-3xl font-black text-gray-900">
-								{budget.formatted_amount || formatCurrency(budgetAmount)}
-							</p>
-						</div>
-
-						{/* Card 2: Gastado */}
-						<div
-							className="bg-white border border-purple-900/10 rounded-2xl p-5 shadow-2xs relative overflow-hidden group hover:border-purple-900/25 transition-all">
-							<span className="text-xs font-extrabold uppercase tracking-wider text-gray-400 block mb-1">
-								{t('landing_demo_expenses')}
-							</span>
-							<p className="text-2xl sm:text-3xl font-black text-rose-600">
-								{formatCurrency(totalSpent)}
-							</p>
-						</div>
-
-						{/* Card 3: Restante */}
-						<div
-							className="bg-white border border-purple-900/10 rounded-2xl p-5 shadow-2xs relative overflow-hidden group hover:border-purple-900/25 transition-all">
-							<span className="text-xs font-extrabold uppercase tracking-wider text-gray-400 block mb-1">
-								{t('balance')}
-							</span>
-							<p className={`text-2xl sm:text-3xl font-black ${remaining < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-								{formatCurrency(remaining)}
-							</p>
 						</div>
 					</div>
 
@@ -218,13 +238,14 @@ export const Show = ({budget, categories}: ShowProps) => {
 
 						{/* Expenses list or empty state */}
 						{budget.expenses && budget.expenses.length > 0 ? (
-							<div className="divide-y divide-gray-100 border rounded-2xl overflow-hidden bg-slate-50/40">
+							<div
+								className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/40">
 								{budget.expenses.map((expense) => {
 									const catMeta = getCategoryMeta(expense.category)
 									return (
 										<div
 											key={expense.id}
-											className="p-4 flex items-center justify-between hover:bg-white transition-all duration-200 group"
+											className="p-4 flex items-center justify-between border-b border-slate-200 hover:bg-white transition-all duration-200 group"
 										>
 											<div className="flex items-center gap-3.5">
 												<div
@@ -237,21 +258,28 @@ export const Show = ({budget, categories}: ShowProps) => {
 														className="font-bold text-sm text-gray-900 block group-hover:text-purple-950 transition-colors">
 														{expense.name}
 													</span>
-													{expense.category && (
-														<span
-															className={`inline-flex items-center text-[11px] font-bold px-2.5 py-0.5 rounded-md border mt-1 ${catMeta.badge}`}
-														>
-															{t(`category_${expense.category}`) !== `category_${expense.category}`
-																? t(`category_${expense.category}`)
-																: expense.category}
-														</span>
-													)}
+													<div className="flex flex-wrap items-center gap-2 mt-1">
+														{expense.category && (
+															<span
+																className={`inline-flex items-center text-[11px] font-bold px-2.5 py-0.5 rounded-md border ${catMeta.badge}`}
+															>
+																{t(`category_${expense.category}`) !== `category_${expense.category}`
+																	? t(`category_${expense.category}`)
+																	: expense.category}
+															</span>
+														)}
+														{expense.created_at && (
+															<span className="text-[11px] font-medium text-gray-400">
+																{t('added_on')}: {formatDate(expense.created_at, locale)}
+															</span>
+														)}
+													</div>
 												</div>
 											</div>
 
 											<div className="flex items-center gap-4">
 											<span className="font-black text-base text-gray-900">
-												{formatCurrency(expense.amount)}
+												{formatCurrencyVal(expense.amount)}
 											</span>
 												<div className="flex items-center gap-1">
 													<button

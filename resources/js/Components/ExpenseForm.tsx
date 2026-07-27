@@ -4,6 +4,7 @@ import {route} from 'ziggy-js'
 import {useTranslation} from '@/hooks/useTranslation'
 import {useExpenseModalStore} from '@/store/expense-modal-store'
 import {InputError} from '@/Components/InputError'
+import {formatDate} from '@/utils/formatDate'
 
 export interface ExpenseFormProps {
 	onSuccess?: () => void
@@ -11,7 +12,7 @@ export interface ExpenseFormProps {
 }
 
 export const ExpenseForm = ({onSuccess, onCancel}: ExpenseFormProps) => {
-	const {t} = useTranslation()
+	const {t, locale} = useTranslation()
 	const {budget, categories, closeModal, editingExpense} = useExpenseModalStore()
 
 	const {data, setData, post, put, processing, errors, reset, clearErrors} = useForm({
@@ -61,10 +62,12 @@ export const ExpenseForm = ({onSuccess, onCancel}: ExpenseFormProps) => {
 		if (editingExpense) {
 			put(route('expenses.update', editingExpense.id), {
 				onSuccess: handleDone,
+				preserveScroll: true
 			})
 		} else {
 			post(route('budgets.expenses.store', budget!.id), {
 				onSuccess: handleDone,
+				preserveScroll: true
 			})
 		}
 	}
@@ -93,6 +96,11 @@ export const ExpenseForm = ({onSuccess, onCancel}: ExpenseFormProps) => {
 							errors.name ? 'border-rose-500 bg-rose-50/30' : 'border-gray-300'
 						}`}
 					/>
+					{editingExpense?.created_at && (
+						<span className="text-[11px] font-medium text-gray-400 block mt-1">
+							{t('added_on')}: {formatDate(editingExpense.created_at, locale)}
+						</span>
+					)}
 					<InputError message={errors.name}/>
 				</div>
 

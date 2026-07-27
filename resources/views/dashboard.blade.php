@@ -26,6 +26,7 @@
 
 				<div>
 					<a href="{{ route('budgets.create') }}"
+					   onclick="if (this.hasAttribute('data-clicked')) { return false; } this.setAttribute('data-clicked', 'true'); this.classList.add('opacity-75', 'cursor-not-allowed', 'pointer-events-none');"
 					   class="inline-flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-xl shadow-md shadow-orange-500/20 hover:shadow-orange-500/35 transition-all duration-200 active:scale-95 text-base">
 						<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
 						     stroke-width="2.5" stroke="currentColor">
@@ -40,12 +41,14 @@
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 				@forelse ($budgets as $budget)
 					<div
-						class="bg-white rounded-2xl p-6 border border-purple-900/10 hover:border-purple-900/25 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between group">
+						class="group bg-white rounded-2xl p-6 border border-purple-900/10 hover:border-purple-900/25 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between">
 						<div>
 							<!-- Header: Name & Type Badge -->
 							<div class="flex items-start justify-between gap-3 mb-3">
 								<h2 class="text-xl font-bold text-gray-900 line-clamp-1 group-hover:text-purple-900 transition-colors">
-									{{ $budget->name }}
+									<a href="{{ route('budgets.show', $budget) }}" class="budget-card-link">
+										{{ $budget->name }}
+									</a>
 								</h2>
 								<span
 									class="inline-flex items-center shrink-0 rounded-lg px-2.5 py-1 text-xs font-semibold {{ $budget->type === BudgetType::Goal ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20' : 'bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-700/20' }}">
@@ -71,7 +74,7 @@
 						<!-- Card Footer Actions -->
 						<div class="pt-4 border-t border-gray-100 flex items-center justify-between mt-4">
 							<a href="{{ route('budgets.show', $budget) }}"
-							   class="inline-flex items-center gap-1.5 text-sm font-bold text-purple-900 hover:text-purple-700 transition-colors group/link">
+							   class="budget-card-link inline-flex items-center gap-1.5 text-sm font-bold text-purple-900 hover:text-purple-700 transition-colors group/link">
 								<span>{{ __('messages.show') }}</span>
 								<svg class="w-4 h-4 transition-transform group-hover/link:translate-x-1"
 								     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
@@ -92,5 +95,34 @@
 
 		</div>
 	</div>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			const budgetLinks = document.querySelectorAll('.budget-card-link');
+			let isNavigating = false;
+
+			budgetLinks.forEach(function (link) {
+				link.addEventListener('click', function (e) {
+					if (isNavigating) {
+						e.preventDefault();
+						e.stopPropagation();
+						return false;
+					}
+
+					isNavigating = true;
+
+					budgetLinks.forEach(function (l) {
+						l.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+					});
+
+					const textSpan = link.querySelector('span');
+					if (textSpan && !link.querySelector('.animate-spin')) {
+						const spinner = '<svg class="animate-spin h-3.5 w-3.5 text-purple-900 inline-block shrink-0 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+						textSpan.insertAdjacentHTML('beforebegin', spinner);
+					}
+				});
+			});
+		});
+	</script>
 
 @endsection

@@ -1,8 +1,8 @@
-import { usePage } from '@inertiajs/react'
-import { SharedData } from '@/types'
+import {usePage} from '@inertiajs/react'
+import {SharedData} from '@/types'
 
 export const useTranslation = () => {
-	const { translations } = usePage<SharedData>().props
+	const {translations, locale} = usePage<SharedData>().props
 	const messages = translations?.messages || {}
 
 	const t = (key: string, replacements: Record<string, string | number> = {}): string => {
@@ -13,5 +13,5 @@ export const useTranslation = () => {
 		return text
 	}
 
-	return { t }
+	return {t, locale: locale || 'es'}
 }

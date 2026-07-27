@@ -42,8 +42,29 @@ internationalized layout.
 * **Reactive Session Flash Messages:** Automatic propagation of Laravel session status notifications (`status` and
   `status_type`) through Inertia shared props to render feedback banners on the UI after creating, updating, or deleting
   expenses.
+* **Shallow Nesting Routing Architecture:** Adheres to Laravel REST best practices using Shallow Routing
+  (`POST /budgets/{budget}/expenses` for creation within budget context, and shallow `PUT /expenses/{expense}` and
+  `DELETE /expenses/{expense}` for member updates and deletions), avoiding redundant deep URL nesting.
 * **Soft Deletes & Policy Guards:** Built-in soft deletion for expenses (`Expense`) and policy authorization guards
   (`ExpensePolicy`, `BudgetPolicy`) ensuring users can only access and modify their own budgets and expenses.
+
+---
+
+### Application Routes Reference
+
+Below is the routing architecture for budgets and expenses:
+
+| HTTP Method | URI Path                     | Route Name               | Controller & Action         | Description                         |
+|:------------|:-----------------------------|:-------------------------|:----------------------------|:------------------------------------|
+| `GET`       | `/dashboard`                 | `dashboard`              | `BudgetController@index`    | User dashboard listing budgets      |
+| `GET`       | `/budgets`                   | `budgets.index`          | `BudgetController@index`    | List user budgets                   |
+| `POST`      | `/budgets`                   | `budgets.store`          | `BudgetController@store`    | Create a new budget                 |
+| `GET`       | `/budgets/{budget}`          | `budgets.show`           | `BudgetController@show`     | View budget details & expense list  |
+| `PUT`       | `/budgets/{budget}`          | `budgets.update`         | `BudgetController@update`   | Update budget details               |
+| `DELETE`    | `/budgets/{budget}`          | `budgets.destroy`        | `BudgetController@destroy`  | Soft delete budget                  |
+| `POST`      | `/budgets/{budget}/expenses` | `budgets.expenses.store` | `ExpenseController@store`   | Create expense under budget         |
+| `PUT`       | `/expenses/{expense}`        | `expenses.update`        | `ExpenseController@update`  | Update expense (Shallow route)      |
+| `DELETE`    | `/expenses/{expense}`        | `expenses.destroy`       | `ExpenseController@destroy` | Soft delete expense (Shallow route) |
 
 ### 2. High-Performance Internationalization (i18n)
 

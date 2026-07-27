@@ -172,6 +172,8 @@ return [
     'edit_expense' => 'Edit Expense',
     'delete_expense' => 'Delete Expense',
     'no_expenses' => 'No expenses registered for this budget.',
+    'added_on' => 'Added on',
+    'spent' => 'Spent',
     'error_403_title' => 'Access Denied',
     'error_403_subtitle' => 'You do not have permission to view or manage this budget.',
     'error_404_title' => 'Page Not Found',

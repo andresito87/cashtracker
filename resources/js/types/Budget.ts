@@ -1,14 +1,6 @@
-export type BudgetType = 'general' | 'goal'
+import {Expense} from './Expense'
 
-export interface Expense {
-	id: number
-	name: string
-	amount: string
-	category?: string
-	budget_id: number
-	created_at?: string
-	updated_at?: string
-}
+export type BudgetType = 'general' | 'goal'
 
 export interface Budget {
 	id: number

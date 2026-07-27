@@ -73,6 +73,86 @@
 		<p>&copy; {{ date('Y') }} CashTracker.</p>
 	</div>
 </footer>
+
+<script>
+	(function () {
+		function setupUserMenu() {
+			const menuBtn = document.getElementById('user-menu-button');
+			const menuDropdown = document.getElementById('user-menu-dropdown');
+			const chevron = document.getElementById('user-menu-chevron');
+
+			if (!menuBtn || !menuDropdown) return;
+
+			function toggleMenu(show) {
+				if (show) {
+					menuDropdown.classList.remove('hidden');
+					menuBtn.setAttribute('aria-expanded', 'true');
+					if (chevron) chevron.classList.add('rotate-180');
+				} else {
+					menuDropdown.classList.add('hidden');
+					menuBtn.setAttribute('aria-expanded', 'false');
+					if (chevron) chevron.classList.remove('rotate-180');
+				}
+			}
+
+			if (menuBtn.hasAttribute('data-has-listener')) return;
+			menuBtn.setAttribute('data-has-listener', 'true');
+
+			menuBtn.addEventListener('click', function (e) {
+				e.stopPropagation();
+				const isHidden = menuDropdown.classList.contains('hidden');
+				toggleMenu(isHidden);
+			});
+
+			document.addEventListener('click', function (e) {
+				if (!menuDropdown.contains(e.target) && !menuBtn.contains(e.target)) {
+					toggleMenu(false);
+				}
+			});
+
+			document.addEventListener('keydown', function (e) {
+				if (e.key === 'Escape') {
+					toggleMenu(false);
+				}
+			});
+
+			const menuItems = menuDropdown.querySelectorAll('a, button[type="submit"]');
+			menuItems.forEach(function (item) {
+				item.addEventListener('click', function (e) {
+					if (item.hasAttribute('data-clicked')) {
+						e.preventDefault();
+						e.stopPropagation();
+						return false;
+					}
+
+					item.setAttribute('data-clicked', 'true');
+
+					menuItems.forEach(function (el) {
+						el.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+					});
+
+					menuBtn.classList.add('opacity-75', 'cursor-not-allowed', 'pointer-events-none');
+
+					const svgIcon = item.querySelector('svg');
+					if (svgIcon) {
+						const spinner = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+						spinner.setAttribute('class', 'animate-spin w-4 h-4 text-purple-300 shrink-0');
+						spinner.setAttribute('fill', 'none');
+						spinner.setAttribute('viewBox', '0 0 24 24');
+						spinner.innerHTML = '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>';
+						svgIcon.replaceWith(spinner);
+					}
+				});
+			});
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', setupUserMenu);
+		} else {
+			setupUserMenu();
+		}
+	})();
+</script>
 </body>
 </html>
 

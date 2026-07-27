@@ -138,6 +138,7 @@
 		<button
 			type="submit"
 			data-loading-text="{{ $loadingText }}"
+			onclick="const form = this.closest('form'); if (form) { form.querySelectorAll('a, button').forEach(function(el) { el.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none'); }); }"
 			class="w-full sm:w-auto bg-[#1b0e35] hover:bg-[#28154e] text-white font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 active:scale-95"
 		>
 			<svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -149,6 +150,7 @@
 
 		<a
 			href="{{ route('dashboard') }}"
+			onclick="if (this.hasAttribute('data-clicked')) { return false; } this.setAttribute('data-clicked', 'true'); const form = this.closest('form'); if (form) { form.querySelectorAll('button, a').forEach(function(el) { el.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none'); }); }"
 			class="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-100 font-medium transition-all duration-200 text-center active:scale-95"
 		>
 			{{ __('messages.cancel') }}
