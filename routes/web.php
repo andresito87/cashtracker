@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\LanguageController;
 use Illuminate\Support\Facades\Route;
 
@@ -78,4 +79,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('admin.dashboard');
 
     Route::resource('budgets', BudgetController::class);
+
+    Route::post('/budgets/{budget}/expenses', [ExpenseController::class, 'store'])->name('budgets.expenses.store');
+    Route::put('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
+    Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
 });

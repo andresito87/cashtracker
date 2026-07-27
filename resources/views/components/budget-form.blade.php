@@ -1,6 +1,7 @@
 @use('App\Enums\BudgetType')
 
 <form method="POST" action="{{ $action }}"
+      novalidate
       class="bg-white border border-purple-900/10 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6 select-none">
 	@csrf
 	@if ($methodOverride)
@@ -22,7 +23,6 @@
 			id="name"
 			name="name"
 			type="text"
-			required
 			value="{{ $name }}"
 			placeholder="{{ __('messages.budget_name_placeholder') }}"
 			class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 bg-gray-50/40 focus:outline-none focus:ring-2 focus:ring-purple-900/20 transition-all duration-200"
@@ -47,15 +47,13 @@
 				<input
 					id="amount"
 					name="amount"
-					type="number"
-					step="0.01"
-					min="0"
-					required
+					type="text"
 					value="{{ $amount }}"
 					placeholder="{{ __('messages.budget_amount_placeholder') }}"
 					class="w-full px-4 py-2.5 bg-transparent border-0 text-gray-900 focus:outline-none focus:ring-0"
 				>
-				<span class="bg-gray-100/90 text-gray-800 text-sm font-bold border-l border-gray-200 px-4 py-2.5 flex items-center shrink-0 select-none">
+				<span
+					class="bg-gray-100/90 text-gray-800 text-sm font-bold border-l border-gray-200 px-4 py-2.5 flex items-center shrink-0 select-none">
 					{{ $userCurrencySymbol }}
 				</span>
 			</div>
@@ -88,7 +86,8 @@
 							class="font-bold block mb-1.5 text-purple-300 border-b border-purple-800/50 pb-1">{{ __('messages.type') }}</span>
 						<span class="block mb-1"><strong
 								class="text-purple-200">{{ __('messages.type_general') }}:</strong> {{ __('messages.type_help_general') }}</span>
-						<span class="block"><strong class="text-purple-200">{{ __('messages.type_help_goal') }}:</strong> {{ __('messages.type_help_goal') }}</span>
+						<span class="block"><strong
+								class="text-purple-200">{{ __('messages.type_help_goal') }}:</strong> {{ __('messages.type_help_goal') }}</span>
 					</span>
 				</span>
 			</label>
@@ -96,7 +95,6 @@
 				<select
 					id="type"
 					name="type"
-					required
 					class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 bg-gray-50/40 focus:outline-none focus:ring-2 focus:ring-purple-900/20 transition-all duration-200 appearance-none pr-10"
 				>
 					@foreach (BudgetType::cases() as $type)

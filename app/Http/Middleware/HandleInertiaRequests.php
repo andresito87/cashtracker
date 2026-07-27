@@ -35,8 +35,22 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        // Return shared data to Inertia, including authenticated user info, flash messages, translations, and locale.
         return [
             ...parent::share($request),
+            'auth' => [
+                'user' => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'email' => $request->user()->email,
+                    'currency' => $request->user()->currency?->value,
+                    'currency_symbol' => $request->user()->currency?->symbol() ?? '€',
+                ] : null,
+            ],
+            'flash' => [
+                'status' => fn () => $request->session()->get('status'),
+                'status_type' => fn () => $request->session()->get('status_type'),
+            ],
             'translations' => [
                 'messages' => __('messages'),
             ],

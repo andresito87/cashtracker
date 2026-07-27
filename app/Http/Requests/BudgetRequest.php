@@ -10,6 +10,11 @@ class BudgetRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     *
+     * Note: Domain-level model authorization (resource ownership & permissions) is intentionally
+     * decoupled from HTTP FormRequests and handled via Gate::authorize() inside Controllers using Policies.
+     * Returning `true` here ensures this FormRequest acts strictly as a reusable Data Validation Object (DTO).
+     * Use this method for request-level security checks (e.g. payload restrictions or HMAC headers).
      */
     public function authorize(): bool
     {

@@ -4,6 +4,10 @@ import {createRoot} from 'react-dom/client'
 
 createInertiaApp({
 	title: title => title ? `CashTracker - ${title}` : 'CashTracker',
+	progress: {
+		color: '#9333ea',
+		showSpinner: false,
+	},
 	resolve: name => {
 		const pages = import.meta.glob('./Pages/**/*.tsx', {eager: true})
 		const module: any = pages[`./Pages/${name}.tsx`]

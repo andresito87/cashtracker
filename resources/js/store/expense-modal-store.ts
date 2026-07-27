@@ -1,0 +1,27 @@
+import {create} from 'zustand'
+import {Budget, Expense} from '@/types'
+import {Category} from "@/types/Category";
+
+interface ExpenseModalState {
+	isOpen: boolean
+	budget: Budget | null
+	categories: Category[]
+	setBudget: (budget: Budget) => void
+	editingExpense: Expense | null
+	openModal: (expense?: Expense | null) => void
+	closeModal: () => void
+	setIsOpen: (isOpen: boolean) => void
+	setCategories: (categories: Category[]) => void
+}
+
+export const useExpenseModalStore = create<ExpenseModalState>((set) => ({
+	isOpen: false,
+	editingExpense: null,
+	budget: null,
+	categories: [],
+	setBudget: (budget: Budget | null) => set({budget}),
+	openModal: (expense = null) => set({isOpen: true, editingExpense: expense}),
+	closeModal: () => set({isOpen: false, editingExpense: null}),
+	setIsOpen: (isOpen) => set((state) => ({isOpen, editingExpense: isOpen ? state.editingExpense : null})),
+	setCategories: (categories) => set({categories}),
+}))

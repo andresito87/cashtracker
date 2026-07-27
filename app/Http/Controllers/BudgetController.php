@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ExpenseCategory;
 use App\Http\Requests\BudgetRequest;
 use App\Models\Budget;
 use Illuminate\Http\RedirectResponse;
@@ -64,9 +65,18 @@ class BudgetController extends Controller
     {
         Gate::authorize('view', $budget);
 
+        $budget->load(['expenses' => function ($query) {
+            $query->latest();
+        }]);
+
         return Inertia::render('Budgets/Show', [
             'budget' => array_merge($budget->toArray(), [
                 'formatted_amount' => $budget->formattedAmount(),
+                'currency_symbol' => $budget->user?->currency?->symbol() ?? auth()->user()?->currency?->symbol() ?? '€',
+            ]),
+            'categories' => collect(ExpenseCategory::cases())->map(fn ($category) => [
+                'value' => $category->value,
+                'label' => $category->label(),
             ]),
         ]);
     }

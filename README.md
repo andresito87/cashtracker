@@ -4,24 +4,48 @@
 
 # CashTracker
 
-CashTracker is a modern, premium financial management application built on top of Laravel. It allows users to track
-incomes, expenses, and view real-time balance calculations under a secure, responsive, and internationalized layout.
+CashTracker is a modern, premium financial management application built on top of Laravel 13 and Inertia.js with
+ReactJS. It enables users to create and manage budgets while tracking their associated categorized expenses, monitoring
+real-time balance calculations, spending progress limits, and financial goals under a secure, responsive, and
+internationalized layout.
 
 ---
 
 ## Technical Stack
 
 * **Backend Framework:** Laravel 13 (PHP 8.5+)
+* **Frontend Architecture:** Inertia.js v3 with React 19 & TypeScript
 * **Database Engine:** SQLite (Local Development), PostgreSQL (Production Supported), SQLite In-Memory (Testing)
 * **Testing Framework:** Pest PHP 4
 * **Styling Framework:** TailwindCSS 4
-* **Asset Bundler:** Vite
+* **Asset Bundler:** Vite 8
 
 ---
 
 ## Core Features & Optimizations
 
-### 1. High-Performance Internationalization (i18n)
+### 1. Budget & Categorized Expense Management Engine
+
+* **Relational Budget-Expense Architecture:** Each budget contains multiple categorized expenses (`food`, `housing`,
+  `entertainment`, `transport`, `healthcare`, `utilities`, `education`, `other`) with localized category labels, icons,
+  and visual badges.
+* **Real-Time Balance & Limit Guards:** Automatically computes total spent, remaining balance, and consumption
+  percentage against budget limits. Prevents expense creation or updates from exceeding the available budget balance.
+* **Inertia.js & React Modal System:** Expense creation and editing are handled via a client-side React modal
+  ([ExpenseModal.tsx](file:///Users/andrespodadera/Code/personal/cashtracker/resources/js/Components/ExpenseModal.tsx))
+  with Zustand state management
+  ([expense-modal-store.ts](file:///Users/andrespodadera/Code/personal/cashtracker/resources/js/store/expense-modal-store.ts)).
+* **Typed React Validation Error Component:** Field validation errors in React forms utilize a reusable
+  `<InputError message={...} />` component
+  ([InputError.tsx](file:///Users/andrespodadera/Code/personal/cashtracker/resources/js/Components/InputError.tsx)),
+  cleanly decoupled from server-side Blade components.
+* **Reactive Session Flash Messages:** Automatic propagation of Laravel session status notifications (`status` and
+  `status_type`) through Inertia shared props to render feedback banners on the UI after creating, updating, or deleting
+  expenses.
+* **Soft Deletes & Policy Guards:** Built-in soft deletion for expenses (`Expense`) and policy authorization guards
+  (`ExpensePolicy`, `BudgetPolicy`) ensuring users can only access and modify their own budgets and expenses.
+
+### 2. High-Performance Internationalization (i18n)
 
 * **Single Round trip Switcher:** Changing languages uses a query parameter optimization (`?lang=`). The system detects
   the language, updates the session, and renders the translated page in a single HTTP request-response cycle (avoiding
@@ -60,16 +84,22 @@ incomes, expenses, and view real-time balance calculations under a secure, respo
   translation keys in both languages, preventing database `UniqueConstraintViolationException` crashes and returning a
   clean, localized form validation error if a duplicate email is entered.
 
-### 4. Componentized Architecture
+### 4. Componentized Architecture & Hybrid Frontend
 
-We abstracted our message displays into reusable Blade components:
+We abstract UI components cleanly across both Blade (server-side) and React (client-side):
 
-* **`<x-input-error>` (`resources/views/components/input-error.blade.php`)**: An anonymous component that dynamically
-  loops over multiple rules validation errors (`$errors->get('field')`) for an input, displaying them with uniform
-  styling.
-* **`<x-alert>` (`resources/views/components/alert.blade.php`)**: A class-backed component that dynamically resolves
-  styles (`success` in green, `error` in red, `info` in blue) and vector SVG icons based on session values passed from
-  controllers.
+* **Blade Server-Side Components:**
+	* **`<x-input-error>` (`resources/views/components/input-error.blade.php`)**: Anonymous Blade component looping over
+	  server-side form validation rules.
+	* **`<x-alert>` (`resources/views/components/alert.blade.php`)**: Class-backed Blade component resolving status
+	  styles and vector SVG icons.
+* **React Client-Side Components (Inertia):**
+	* **`<InputError />` (`resources/js/Components/InputError.tsx`)**: Reusable TypeScript React component rendering
+	  field validation messages for Inertia form state.
+	* **`<ExpenseModal />` & `<ExpenseForm />` (`resources/js/Components/ExpenseModal.tsx`)**: Client-side React modal
+	  and form for creating and editing budget expenses with Zustand state synchronization.
+	* **`<ConfirmDeleteModal />` (`resources/js/Components/ConfirmDeleteModal.tsx`)**: Reusable deletion modal for
+	  confirming budget or expense removal.
 
 ---
 
@@ -219,6 +249,18 @@ php artisan config:show app.name
 php artisan tinker
 ```
 
+### 10. Inertia & Ziggy Route Generation
+
+| Command                                                      | Options / Flags  | Description                                                                                                                                   |
+|:-------------------------------------------------------------|:-----------------|:----------------------------------------------------------------------------------------------------------------------------------------------|
+| `php artisan ziggy:generate --types=resources/js/ziggy.d.ts` | `--types=<path>` | Generates both the JavaScript route helper (`resources/js/ziggy.js`) and TypeScript declaration file (`resources/js/ziggy.d.ts`) for Inertia. |
+| `php artisan ziggy:generate --types-only`                    | `--types-only`   | Generates/updates only the TypeScript declaration file (`resources/js/ziggy.d.ts`).                                                           |
+
+```bash
+# Generate Ziggy routes and TypeScript typings whenever you add or modify Laravel web routes:
+php artisan ziggy:generate --types=resources/js/ziggy.d.ts
+```
+
 ---
 
 ## Testing & Quality Assurance
@@ -241,9 +283,9 @@ CashTracker features a robust, professional test suite powered by **Pest PHP 4**
 	  `Registered` event dispatching, and email verification notice redirects.
 	* **Email Verification:** Unverified user middleware (`verified`), signed verification URLs (`verification.verify`),
 	  notification resending, and localized email message rendering (`VerifyEmail`).
-	* **Budget Authorization & Policies:** Role-scoped index queries (Admins retrieve all budgets; regular users
-	  retrieve only owned budgets), Policy authorization guards (`BudgetPolicy`), Admin ownership bypass, and
-	  guest/unverified route restrictions.
+	* **Budget & Expense Management:** Full CRUD test coverage (`ExpenseCrudTest`), policy authorization
+	  (`ExpensePolicy`, `BudgetPolicy`), soft deletion, payload validation, available budget balance limits, guest route
+	  restrictions, and Inertia flash prop sharing.
 	* **Internationalization (i18n):** Multi-language assertions (`en` and `es`) across forms, views, notifications, and
 	  validation error messages.
 
