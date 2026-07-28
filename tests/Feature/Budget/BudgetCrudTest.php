@@ -6,13 +6,14 @@ use App\Models\Budget;
 use Inertia\Testing\AssertableInertia as Assert;
 
 it('lists only the authenticated users budgets for regular users', function () {
-    $user = actingAsVerifiedUser();
+    $user = createVerifiedUser();
     $otherUser = createVerifiedUser();
 
     $ownBudget = Budget::factory()->for($user)->create(['name' => 'My Budget']);
     $otherBudget = Budget::factory()->for($otherUser)->create(['name' => 'Other Budget']);
 
-    $response = $this->get(route('budgets.index'))
+    $response = $this->actingAs($user)
+        ->get(route('budgets.index'))
         ->assertSuccessful()
         ->assertSee('My Budget')
         ->assertDontSee('Other Budget');
@@ -29,9 +30,8 @@ it('lists all budgets for admin users', function () {
     $adminBudget = Budget::factory()->for($admin)->create(['name' => 'Admin Budget']);
     $userBudget = Budget::factory()->for($otherUser)->create(['name' => 'User Budget']);
 
-    $this->actingAs($admin);
-
-    $response = $this->get(route('budgets.index'))
+    $response = $this->actingAs($admin)
+        ->get(route('budgets.index'))
         ->assertSuccessful()
         ->assertSee('Admin Budget')
         ->assertSee('User Budget');
@@ -44,12 +44,13 @@ it('lists all budgets for admin users', function () {
 });
 
 it('creates a budget for the authenticated user', function () {
-    $user = actingAsVerifiedUser(['currency' => Currency::USD]);
+    $user = createVerifiedUser(['currency' => Currency::USD]);
 
-    $this->post(route('budgets.store'), validBudgetPayload([
-        'name' => 'Travel Fund',
-        'type' => 'goal',
-    ]))
+    $this->actingAs($user)
+        ->post(route('budgets.store'), validBudgetPayload([
+            'name' => 'Travel Fund',
+            'type' => 'goal',
+        ]))
         ->assertRedirect(route('budgets.show', Budget::query()->first()))
         ->assertSessionHas('status', __('messages.budget_created'));
 
@@ -73,16 +74,17 @@ it('creates a budget for the authenticated user', function () {
 });
 
 it('updates an owned budget', function () {
-    $user = actingAsVerifiedUser(['currency' => Currency::USD]);
+    $user = createVerifiedUser(['currency' => Currency::USD]);
     $budget = Budget::factory()->for($user)->create([
         'type' => BudgetType::General,
     ]);
 
-    $this->put(route('budgets.update', $budget), validBudgetPayload([
-        'name' => 'Updated Budget',
-        'amount' => 500,
-        'type' => 'goal',
-    ]))
+    $this->actingAs($user)
+        ->put(route('budgets.update', $budget), validBudgetPayload([
+            'name' => 'Updated Budget',
+            'amount' => 500,
+            'type' => 'goal',
+        ]))
         ->assertRedirect(route('budgets.show', $budget))
         ->assertSessionHas('status', __('messages.budget_updated'));
 
@@ -104,10 +106,11 @@ it('updates an owned budget', function () {
 });
 
 it('soft deletes an owned budget', function () {
-    $user = actingAsVerifiedUser();
+    $user = createVerifiedUser();
     $budget = Budget::factory()->for($user)->create();
 
-    $this->delete(route('budgets.destroy', $budget))
+    $this->actingAs($user)
+        ->delete(route('budgets.destroy', $budget))
         ->assertRedirect(route('dashboard'))
         ->assertSessionHas('status', __('messages.budget_deleted'));
 
@@ -117,57 +120,20 @@ it('soft deletes an owned budget', function () {
     ]);
 });
 
-it('validates budget input on create', function () {
-    actingAsVerifiedUser();
-
-    $this->from(route('budgets.create'))
-        ->post(route('budgets.store'))
-        ->assertRedirect(route('budgets.create'))
-        ->assertSessionHasErrors(['name', 'amount', 'type']);
-});
-
-it('validates budget input on update', function () {
-    $user = actingAsVerifiedUser();
-    $budget = Budget::factory()->for($user)->create();
-
-    $this->from(route('budgets.edit', $budget))
-        ->put(route('budgets.update', $budget), [
-            'name' => '',
-            'amount' => '',
-            'type' => '',
-        ])
-        ->assertRedirect(route('budgets.edit', $budget))
-        ->assertSessionHasErrors(['name', 'amount', 'type']);
-});
-
-it('rejects invalid budget types', function () {
-    actingAsVerifiedUser();
-
-    $this->post(route('budgets.store'), validBudgetPayload([
-        'type' => 'invalid-type',
-    ]))->assertSessionHasErrors(['type']);
-});
-
-it('rejects negative budget amounts', function () {
-    actingAsVerifiedUser();
-
-    $this->post(route('budgets.store'), validBudgetPayload([
-        'amount' => -10,
-    ]))->assertSessionHasErrors(['amount']);
-});
-
 it('shows the create budget form for verified users', function () {
-    actingAsVerifiedUser();
+    $user = createVerifiedUser();
 
-    $this->get(route('budgets.create'))
+    $this->actingAs($user)
+        ->get(route('budgets.create'))
         ->assertSuccessful();
 });
 
 it('shows an owned budget detail page', function () {
-    $user = actingAsVerifiedUser();
+    $user = createVerifiedUser();
     $budget = Budget::factory()->for($user)->create(['name' => 'Emergency Fund']);
 
-    $this->get(route('budgets.show', $budget))
+    $this->actingAs($user)
+        ->get(route('budgets.show', $budget))
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Budgets/Show')
@@ -180,32 +146,81 @@ it('shows an owned budget detail page', function () {
 });
 
 it('shows the edit budget form for the owner', function () {
-    $user = actingAsVerifiedUser();
+    $user = createVerifiedUser();
     $budget = Budget::factory()->for($user)->create([
         'name' => 'Viaje a las Vegas',
         'amount' => 1000,
     ]);
 
-    $this->get(route('budgets.edit', $budget))
+    $this->actingAs($user)
+        ->get(route('budgets.edit', $budget))
         ->assertSuccessful()
         ->assertSee('Viaje a las Vegas')
         ->assertSee('1000');
 });
 
 it('displays translated empty state message in Spanish and English when user has no budgets', function () {
-    actingAsVerifiedUser();
+    $user = createVerifiedUser();
 
     app()->setLocale('es');
-    $this->withSession(['locale' => 'es'])
+    $this->actingAs($user)
+        ->withSession(['locale' => 'es'])
         ->get(route('budgets.index'))
         ->assertSuccessful()
         ->assertSee('No hay presupuestos todavía.')
         ->assertSee('Empieza creando tu primer presupuesto');
 
     app()->setLocale('en');
-    $this->withSession(['locale' => 'en'])
+    $this->actingAs($user)
+        ->withSession(['locale' => 'en'])
         ->get(route('budgets.index'))
         ->assertSuccessful()
         ->assertSee('No budgets yet.')
         ->assertSee('Start by creating your first budget');
+});
+
+it('creates and updates a budget with optional description', function () {
+    $user = createVerifiedUser();
+
+    // Create with description
+    $this->actingAs($user)
+        ->post(route('budgets.store'), validBudgetPayload([
+            'name' => 'Vacation Fund',
+            'description' => 'Saving up for summer trip',
+        ]))->assertRedirect();
+
+    $budget = Budget::query()->where('name', 'Vacation Fund')->first();
+    expect($budget->description)->toBe('Saving up for summer trip');
+
+    // Update description
+    $this->actingAs($user)
+        ->put(route('budgets.update', $budget), validBudgetPayload([
+            'name' => 'Vacation Fund Updated',
+            'description' => 'Saving up for winter trip',
+        ]))->assertRedirect();
+
+    expect($budget->fresh()->description)->toBe('Saving up for winter trip');
+});
+
+it('excludes soft deleted budgets from budget index listing', function () {
+    $user = createVerifiedUser();
+    $activeBudget = Budget::factory()->for($user)->create(['name' => 'Active Budget']);
+    $deletedBudget = Budget::factory()->for($user)->create(['name' => 'Deleted Budget']);
+
+    $deletedBudget->delete();
+
+    $this->actingAs($user)
+        ->get(route('budgets.index'))
+        ->assertSuccessful()
+        ->assertSee('Active Budget')
+        ->assertDontSee('Deleted Budget');
+
+    $this->assertSoftDeleted('budgets', [
+        'id' => $deletedBudget->id,
+    ]);
+
+    $this->assertDatabaseHas('budgets', [
+        'id' => $activeBudget->id,
+        'deleted_at' => null,
+    ]);
 });

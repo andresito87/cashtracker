@@ -90,3 +90,15 @@ it('redirects authenticated but unverified users away from budget routes', funct
     $this->post(route('budgets.store'), validBudgetPayload())->assertRedirect(route('verification.notice'));
     $this->get(route('budgets.show', $budget))->assertRedirect(route('verification.notice'));
 });
+
+it('returns 404 when attempting to view edit update or delete a soft deleted budget', function () {
+    $user = actingAsVerifiedUser();
+    $budget = Budget::factory()->for($user)->create();
+
+    $budget->delete();
+
+    $this->get(route('budgets.show', $budget))->assertNotFound();
+    $this->get(route('budgets.edit', $budget))->assertNotFound();
+    $this->put(route('budgets.update', $budget), validBudgetPayload())->assertNotFound();
+    $this->delete(route('budgets.destroy', $budget))->assertNotFound();
+});

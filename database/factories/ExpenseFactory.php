@@ -21,7 +21,7 @@ class ExpenseFactory extends Factory
         return [
             'budget_id' => Budget::factory(),
             'name' => fake()->words(2, true),
-            'amount' => fake()->randomFloat(2, 5, 500),
+            'amount' => fake()->randomFloat(2, 50, 5000),
             'category' => fake()->randomElement(['food', 'transportation', 'home', 'entertainment', 'other']),
         ];
     }
