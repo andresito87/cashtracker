@@ -18,7 +18,7 @@ interface ShowProps {
 }
 
 export const Show = ({budget, categories}: ShowProps) => {
-	const {flash, auth} = usePage<SharedData>().props
+	const {auth} = usePage<SharedData>().props
 	const {t, locale} = useTranslation()
 	const {openModal, setBudget, setCategories} = useExpenseModalStore()
 
@@ -75,19 +75,6 @@ export const Show = ({budget, categories}: ShowProps) => {
 			<Head title={`${t('budgets')}: ${budget.name}`}/>
 			<div className="py-8 sm:py-12 bg-slate-50/70 min-h-[calc(100vh-80px)]">
 				<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-
-					{/* Status Flash Message */}
-					{flash?.status && (
-						<div
-							className={`p-4 rounded-2xl text-sm font-medium border shadow-xs transition-all ${
-								flash.status_type === 'error'
-									? 'bg-rose-50 border-rose-200 text-rose-800'
-									: 'bg-emerald-50 border-emerald-200 text-emerald-800'
-							}`}
-						>
-							{flash.status}
-						</div>
-					)}
 
 					{/* Navigation / Back Action Bar */}
 					<div className="flex items-center justify-between">

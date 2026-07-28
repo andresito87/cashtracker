@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Budget;
+use Inertia\Testing\AssertableInertia as Assert;
 
 it('redirects guests to the login page', function () {
     $this->get(route('dashboard'))
@@ -14,8 +15,9 @@ it('shows the dashboard for verified users', function () {
 
     $this->get(route('dashboard'))
         ->assertSuccessful()
-        ->assertSee(__('messages.manage_budgets_title'))
-        ->assertSee(__('messages.create_budget'));
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Dashboard')
+        );
 });
 
 it('displays flash status messages on the dashboard', function () {
@@ -28,22 +30,25 @@ it('displays flash status messages on the dashboard', function () {
     ])
         ->get(route('dashboard'))
         ->assertSuccessful()
-        ->assertSee('Operation successful');
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Dashboard')
+            ->where('flash.status', 'Operation successful')
+            ->where('flash.status_type', 'success')
+        );
 });
 
 it('displays only the authenticated users budgets on the dashboard', function () {
     $user = actingAsVerifiedUser();
     $otherUser = createVerifiedUser();
 
-    $ownBudget = Budget::factory()->for($user)->create(['name' => 'Mi Presupuesto']);
-    $otherBudget = Budget::factory()->for($otherUser)->create(['name' => 'Otro Presupuesto']);
+    Budget::factory()->for($user)->create(['name' => 'Mi Presupuesto']);
+    Budget::factory()->for($otherUser)->create(['name' => 'Otro Presupuesto']);
 
-    $response = $this->get(route('dashboard'))
+    $this->get(route('dashboard'))
         ->assertSuccessful()
-        ->assertSee('Mi Presupuesto')
-        ->assertDontSee('Otro Presupuesto');
-
-    $response->assertViewHas('budgets', function ($budgets) use ($ownBudget, $otherBudget) {
-        return $budgets->contains($ownBudget) && ! $budgets->contains($otherBudget);
-    });
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Dashboard')
+            ->has('budgets', 1)
+            ->where('budgets.0.name', 'Mi Presupuesto')
+        );
 });

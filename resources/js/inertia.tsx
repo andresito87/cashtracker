@@ -1,6 +1,8 @@
 /// <reference types="vite/client" />
 import {createInertiaApp} from '@inertiajs/react'
 import {createRoot} from 'react-dom/client'
+import {ToastContainer} from '@/Components/ToastContainer'
+import {FlashToastListener} from '@/Components/FlashToastListener'
 
 createInertiaApp({
 	title: title => title ? `CashTracker - ${title}` : 'CashTracker',
@@ -15,6 +17,18 @@ createInertiaApp({
 		return module.default || module[componentName]
 	},
 	setup({el, App, props}) {
-		createRoot(el).render(<App {...props} />)
+		createRoot(el).render(
+			<>
+				<App {...props}>
+					{({Component, props, key}) => (
+						<>
+							<FlashToastListener/>
+							<Component key={key} {...props} />
+						</>
+					)}
+				</App>
+				<ToastContainer/>
+			</>
+		)
 	},
 }).then()

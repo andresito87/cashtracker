@@ -16,7 +16,7 @@ class BudgetController extends Controller
     /**
      * Display a listing of the budgets (all budgets for admins, owned budgets for regular users).
      */
-    public function index(): View
+    public function index(): Response
     {
         $user = auth()->user();
 
@@ -25,7 +25,12 @@ class BudgetController extends Controller
             ? Budget::latest()->get()
             : $user->budgets()->latest()->get();
 
-        return view('dashboard', compact('budgets'));
+        return Inertia::render('Dashboard', [
+            'budgets' => $budgets->map(fn ($budget) => array_merge($budget->toArray(), [
+                'formatted_amount' => $budget->formattedAmount(),
+                'currency_symbol' => $budget->user?->currency?->symbol() ?? auth()->user()?->currency?->symbol() ?? '€',
+            ])),
+        ]);
     }
 
     /**

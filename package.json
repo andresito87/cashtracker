@@ -24,6 +24,7 @@
 		"react": "^19.2.8",
 		"react-circular-progressbar": "^2.2.0",
 		"react-dom": "^19.2.8",
+		"react-hot-toast": "^2.6.0",
 		"ziggy-js": "^2.6.3",
 		"zustand": "^5.0.14"
 	}

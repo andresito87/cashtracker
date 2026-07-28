@@ -1,5 +1,7 @@
 <?php
 
+use Inertia\Testing\AssertableInertia as Assert;
+
 it('can switch languages via query parameter and persists in session', function () {
     $response = $this->get('/?lang=es');
 
@@ -35,16 +37,20 @@ it('loads dashboard in different languages', function () {
     $this->actingAs($user)
         ->withSession(['locale' => 'es', 'status' => 'Operación exitosa', 'status_type' => 'success'])
         ->get(route('dashboard'))
-        ->assertSee(__('messages.manage_budgets_title'))
-        ->assertSee(__('messages.create_budget'))
-        ->assertSee('Operación exitosa');
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Dashboard')
+            ->where('flash.status', 'Operación exitosa')
+            ->where('flash.status_type', 'success')
+        );
 
     $this->actingAs($user)
         ->withSession(['locale' => 'en', 'status' => 'Operation successful', 'status_type' => 'success'])
         ->get(route('dashboard'))
-        ->assertSee(__('messages.manage_budgets_title'))
-        ->assertSee(__('messages.create_budget'))
-        ->assertSee('Operation successful');
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Dashboard')
+            ->where('flash.status', 'Operation successful')
+            ->where('flash.status_type', 'success')
+        );
 });
 
 it('validates unique email during registration with translations', function () {

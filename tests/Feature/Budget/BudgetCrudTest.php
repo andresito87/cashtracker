@@ -9,38 +9,35 @@ it('lists only the authenticated users budgets for regular users', function () {
     $user = createVerifiedUser();
     $otherUser = createVerifiedUser();
 
-    $ownBudget = Budget::factory()->for($user)->create(['name' => 'My Budget']);
-    $otherBudget = Budget::factory()->for($otherUser)->create(['name' => 'Other Budget']);
+    Budget::factory()->for($user)->create(['name' => 'My Budget']);
+    Budget::factory()->for($otherUser)->create(['name' => 'Other Budget']);
 
-    $response = $this->actingAs($user)
+    $this->actingAs($user)
         ->get(route('budgets.index'))
         ->assertSuccessful()
-        ->assertSee('My Budget')
-        ->assertDontSee('Other Budget');
-
-    $response->assertViewHas('budgets', function ($budgets) use ($ownBudget, $otherBudget) {
-        return $budgets->contains($ownBudget) && ! $budgets->contains($otherBudget);
-    });
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Dashboard')
+            ->has('budgets', 1)
+            ->where('budgets.0.name', 'My Budget')
+        );
 });
 
 it('lists all budgets for admin users', function () {
     $admin = createAdminUser();
     $otherUser = createVerifiedUser();
 
-    $adminBudget = Budget::factory()->for($admin)->create(['name' => 'Admin Budget']);
-    $userBudget = Budget::factory()->for($otherUser)->create(['name' => 'User Budget']);
+    Budget::factory()->for($admin)->create(['name' => 'Admin Budget']);
+    Budget::factory()->for($otherUser)->create(['name' => 'User Budget']);
 
-    $response = $this->actingAs($admin)
+    $this->actingAs($admin)
         ->get(route('budgets.index'))
         ->assertSuccessful()
-        ->assertSee('Admin Budget')
-        ->assertSee('User Budget');
-
-    $response->assertViewHas('budgets', function ($budgets) use ($adminBudget, $userBudget) {
-        return $budgets->count() === 2
-            && $budgets->contains($adminBudget)
-            && $budgets->contains($userBudget);
-    });
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Dashboard')
+            ->has('budgets', 2)
+            ->where('budgets.0.name', 'Admin Budget')
+            ->where('budgets.1.name', 'User Budget')
+        );
 });
 
 it('creates a budget for the authenticated user', function () {
@@ -167,16 +164,20 @@ it('displays translated empty state message in Spanish and English when user has
         ->withSession(['locale' => 'es'])
         ->get(route('budgets.index'))
         ->assertSuccessful()
-        ->assertSee('No hay presupuestos todavía.')
-        ->assertSee('Empieza creando tu primer presupuesto');
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Dashboard')
+            ->has('budgets', 0)
+        );
 
     app()->setLocale('en');
     $this->actingAs($user)
         ->withSession(['locale' => 'en'])
         ->get(route('budgets.index'))
         ->assertSuccessful()
-        ->assertSee('No budgets yet.')
-        ->assertSee('Start by creating your first budget');
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Dashboard')
+            ->has('budgets', 0)
+        );
 });
 
 it('creates and updates a budget with optional description', function () {
@@ -212,8 +213,11 @@ it('excludes soft deleted budgets from budget index listing', function () {
     $this->actingAs($user)
         ->get(route('budgets.index'))
         ->assertSuccessful()
-        ->assertSee('Active Budget')
-        ->assertDontSee('Deleted Budget');
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Dashboard')
+            ->has('budgets', 1)
+            ->where('budgets.0.name', 'Active Budget')
+        );
 
     $this->assertSoftDeleted('budgets', [
         'id' => $deletedBudget->id,
