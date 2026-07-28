@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ExpenseCategory;
 use App\Models\Budget;
 use App\Models\Expense;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -21,8 +22,8 @@ class ExpenseFactory extends Factory
         return [
             'budget_id' => Budget::factory(),
             'name' => fake()->words(2, true),
-            'amount' => fake()->randomFloat(2, 50, 5000),
-            'category' => fake()->randomElement(['food', 'transportation', 'home', 'entertainment', 'other']),
+            'amount' => fake()->randomFloat(2, 5, 250),
+            'category' => fake()->randomElement(array_column(ExpenseCategory::cases(), 'value')),
         ];
     }
 }

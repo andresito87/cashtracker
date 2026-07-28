@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -27,6 +28,7 @@ use Illuminate\Notifications\Notifiable;
  * @property string $role
  * @property string|null $remember_token
  * @property Collection<int, Budget> $budgets
+ * @property Collection<int, Expense> $expenses
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
@@ -82,5 +84,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function budgets(): HasMany
     {
         return $this->hasMany(Budget::class);
+    }
+
+    /**
+     * All expenses belonging to this user through their budgets.
+     */
+    public function expenses(): HasManyThrough
+    {
+        return $this->hasManyThrough(Expense::class, Budget::class);
     }
 }
