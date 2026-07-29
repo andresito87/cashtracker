@@ -191,4 +191,15 @@ return [
     'category_education' => 'Education',
     'category_pets' => 'Pets',
     'category_other' => 'Other Expenses',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Agent Chat
+    |--------------------------------------------------------------------------
+    */
+    'agent_title' => 'CashTracker Assistant',
+    'agent_subtitle' => 'Ask questions about your expenses, budget, or upload a receipt.',
+    'agent_placeholder' => 'Ask about your budget or add expenses...',
+    'agent_upload_ticket' => 'Upload Receipt',
+    'agent_consult' => 'Send Query',
 ];

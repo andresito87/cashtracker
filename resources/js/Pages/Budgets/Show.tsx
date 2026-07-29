@@ -11,6 +11,7 @@ import {ProgressBar} from '@/Components/ProgressBar'
 import {useExpenseModalStore} from '@/store/expense-modal-store'
 import {Category} from "@/types/Category"
 import {getCategoryMeta} from '@/constants/category-config'
+import CashTrackerAgent from "@/Components/CashTrackerAgent";
 
 interface ShowProps {
 	budget: Budget,
@@ -323,6 +324,9 @@ export const Show = ({budget, categories}: ShowProps) => {
 							</button>
 						</div>
 					</div>
+
+					{/* Chat to talk with AI agent about your budget, add expenses, and more */}
+					<CashTrackerAgent budgetId={budget.id}/>
 
 					{/* Confirm Delete Budget Modal */}
 					<ConfirmDeleteModal

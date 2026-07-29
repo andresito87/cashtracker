@@ -6,15 +6,17 @@
 
 CashTracker is a modern, premium financial management application built on top of Laravel 13 and Inertia.js with
 ReactJS. It enables users to create and manage budgets while tracking their associated categorized expenses, monitoring
-real-time balance calculations, spending progress limits, and financial goals under a secure, responsive, and
-internationalized layout.
+real-time balance calculations, spending progress limits, and financial goals under a secure, responsive layout. It
+features an integrated **AI Financial Assistant** powered by Laravel AI SDK and OpenRouter for natural language expense
+querying and conversational expense creation with automated UI state synchronization.
 
 ---
 
 ## Technical Stack
 
 * **Backend Framework:** Laravel 13 (PHP 8.5+)
-* **Frontend Architecture:** Inertia.js v3 with React 19 & TypeScript
+* **AI & Agent Engine:** Laravel AI SDK (`laravel/ai`) with OpenRouter Gateway
+* **Frontend Architecture:** Inertia.js v3 with React 19, TypeScript & `@ai-sdk/react`
 * **Database Engine:** SQLite (Local Development), PostgreSQL (Production Supported), SQLite In-Memory (Testing)
 * **Testing Framework:** Pest PHP 4
 * **Styling Framework:** TailwindCSS 4
@@ -54,17 +56,18 @@ internationalized layout.
 
 Below is the routing architecture for budgets and expenses:
 
-| HTTP Method | URI Path                     | Route Name               | Controller & Action         | Description                         |
-|:------------|:-----------------------------|:-------------------------|:----------------------------|:------------------------------------|
-| `GET`       | `/dashboard`                 | `dashboard`              | `BudgetController@index`    | User dashboard listing budgets      |
-| `GET`       | `/budgets`                   | `budgets.index`          | `BudgetController@index`    | List user budgets                   |
-| `POST`      | `/budgets`                   | `budgets.store`          | `BudgetController@store`    | Create a new budget                 |
-| `GET`       | `/budgets/{budget}`          | `budgets.show`           | `BudgetController@show`     | View budget details & expense list  |
-| `PUT`       | `/budgets/{budget}`          | `budgets.update`         | `BudgetController@update`   | Update budget details               |
-| `DELETE`    | `/budgets/{budget}`          | `budgets.destroy`        | `BudgetController@destroy`  | Soft delete budget                  |
-| `POST`      | `/budgets/{budget}/expenses` | `budgets.expenses.store` | `ExpenseController@store`   | Create expense under budget         |
-| `PUT`       | `/expenses/{expense}`        | `expenses.update`        | `ExpenseController@update`  | Update expense (Shallow route)      |
-| `DELETE`    | `/expenses/{expense}`        | `expenses.destroy`       | `ExpenseController@destroy` | Soft delete expense (Shallow route) |
+| HTTP Method | URI Path                     | Route Name               | Controller & Action          | Description                         |
+|:------------|:-----------------------------|:-------------------------|:-----------------------------|:------------------------------------|
+| `GET`       | `/dashboard`                 | `dashboard`              | `BudgetController@index`     | User dashboard listing budgets      |
+| `GET`       | `/budgets`                   | `budgets.index`          | `BudgetController@index`     | List user budgets                   |
+| `POST`      | `/budgets`                   | `budgets.store`          | `BudgetController@store`     | Create a new budget                 |
+| `GET`       | `/budgets/{budget}`          | `budgets.show`           | `BudgetController@show`      | View budget details & expense list  |
+| `PUT`       | `/budgets/{budget}`          | `budgets.update`         | `BudgetController@update`    | Update budget details               |
+| `DELETE`    | `/budgets/{budget}`          | `budgets.destroy`        | `BudgetController@destroy`   | Soft delete budget                  |
+| `POST`      | `/budgets/{budget}/chat`     | `budgets.chat`           | `BudgetChatController@store` | Stream AI agent chat for budget     |
+| `POST`      | `/budgets/{budget}/expenses` | `budgets.expenses.store` | `ExpenseController@store`    | Create expense under budget         |
+| `PUT`       | `/expenses/{expense}`        | `expenses.update`        | `ExpenseController@update`   | Update expense (Shallow route)      |
+| `DELETE`    | `/expenses/{expense}`        | `expenses.destroy`       | `ExpenseController@destroy`  | Soft delete expense (Shallow route) |
 
 ### 2. High-Performance Internationalization (i18n)
 
@@ -121,6 +124,28 @@ We abstract UI components cleanly across both Blade (server-side) and React (cli
 	  and form for creating and editing budget expenses with Zustand state synchronization.
 	* **`<ConfirmDeleteModal />` (`resources/js/Components/ConfirmDeleteModal.tsx`)**: Reusable deletion modal for
 	  confirming budget or expense removal.
+
+### 5. AI Financial Assistant & Agentic Tools
+
+* **Streaming Agent Architecture (`BudgetAssistant.php`)**: Built on top of Laravel AI SDK (`laravel/ai`) with
+  OpenRouter integration (`openrouter/free` router or custom model options like Qwen 2.5 Coder, Ling 3.0 Flash). Streams
+  responses via the Vercel AI Protocol (`usingVercelDataProtocol()`).
+* **Structured Agent Tools (`Laravel\Ai\Contracts\Tool`)**:
+	* **`SearchExpenses` (`app/Ai/Tools/SearchExpenses.php`)**: Allows natural language queries to search, filter by
+	  name/category, and sort expenses (`sort_by`: `amount_desc`, `amount_asc`, `latest`, `oldest`) with a 30-item
+	  prompt overflow guard and user currency symbol formatting.
+	* **`AddExpense` (`app/Ai/Tools/AddExpense.php`)**: Enables conversational expense creation with strict validation
+	  (positive amount required, category enum mapping, placeholder name rejection) and available budget balance limit
+	  enforcement.
+* **Security & Tenancy Safeguards**: Both AI tools validate budget ownership against the authenticated user
+  (`Budget::where('user_id', auth()->id())`), preventing unauthorized data access or cross-user budget mutations.
+* **Interactive Frontend Chat Component (`CashTrackerAgent.tsx`)**:
+	* Real-time streaming UI using `@ai-sdk/react` (`useChat`).
+	* Filters out internal Chain-of-Thought (CoT) tokens (`<think>`, `<|end|>`) and hides empty intermediate tool
+	  execution bubbles while displaying a clean typing indicator.
+	* Trigger-based Toast notifications using `react-hot-toast` + Inertia data reloads
+	  (`router.reload({ only: ['budget', 'expenses'] })`) when an expense is successfully registered via
+	  `[EXPENSE_CREATED]`.
 
 ---
 

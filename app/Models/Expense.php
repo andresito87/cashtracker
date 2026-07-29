@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ExpenseCategory;
 use Carbon\Carbon;
 use Database\Factories\ExpenseFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $id
  * @property string $name
  * @property string $amount
- * @property string|null $category
+ * @property ExpenseCategory|null $category
  * @property int $budget_id
  * @property Budget $budget
  * @property Carbon|null $created_at
@@ -42,7 +43,16 @@ class Expense extends Model
     {
         return [
             'amount' => 'decimal:2',
+            'category' => ExpenseCategory::class,
         ];
+    }
+
+    /**
+     * Get the human-readable category label.
+     */
+    public function categoryLabel(): string
+    {
+        return $this->category?->label() ?? 'Gastos Varios';
     }
 
     /**

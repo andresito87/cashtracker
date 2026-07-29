@@ -191,4 +191,15 @@ return [
     'category_education' => 'Educación',
     'category_pets' => 'Mascotas',
     'category_other' => 'Gastos Varios',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Agent Chat
+    |--------------------------------------------------------------------------
+    */
+    'agent_title' => 'Asistente CashTracker',
+    'agent_subtitle' => 'Consulta tus gastos, haz preguntas sobre tu presupuesto o sube un ticket.',
+    'agent_placeholder' => 'Consulta dudas sobre tu presupuesto o añade gastos...',
+    'agent_upload_ticket' => 'Subir Ticket',
+    'agent_consult' => 'Consultar',
 ];
