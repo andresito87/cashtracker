@@ -6,9 +6,9 @@
 
 CashTracker is a modern, premium financial management application built on top of Laravel 13 and Inertia.js with
 ReactJS. It enables users to create and manage budgets while tracking their associated categorized expenses, monitoring
-real-time balance calculations, spending progress limits, and financial goals under a secure, responsive layout. It
-features an integrated **AI Financial Assistant** powered by Laravel AI SDK and OpenRouter for natural language expense
-querying and conversational expense creation with automated UI state synchronization.
+real-time balance calculations and spending progress limits under a secure, responsive layout. It features an integrated
+**AI Financial Assistant** powered by Laravel AI SDK and OpenRouter for natural language expense querying and
+conversational expense creation with automated UI state synchronization.
 
 ---
 
@@ -34,13 +34,11 @@ querying and conversational expense creation with automated UI state synchroniza
 * **Real-Time Balance & Limit Guards:** Automatically computes total spent, remaining balance, and consumption
   percentage against budget limits. Prevents expense creation or updates from exceeding the available budget balance.
 * **Inertia.js & React Modal System:** Expense creation and editing are handled via a client-side React modal
-  ([ExpenseModal.tsx](file:///Users/andrespodadera/Code/personal/cashtracker/resources/js/Components/ExpenseModal.tsx))
-  with Zustand state management
-  ([expense-modal-store.ts](file:///Users/andrespodadera/Code/personal/cashtracker/resources/js/store/expense-modal-store.ts)).
+  ([ExpenseModal.tsx](resources/js/Components/ExpenseModal.tsx))
+  with Zustand state management ([expense-modal-store.ts](resources/js/store/expense-modal-store.ts)).
 * **Typed React Validation Error Component:** Field validation errors in React forms utilize a reusable
-  `<InputError message={...} />` component
-  ([InputError.tsx](file:///Users/andrespodadera/Code/personal/cashtracker/resources/js/Components/InputError.tsx)),
-  cleanly decoupled from server-side Blade components.
+  `<InputError message={...} />` component ([InputError.tsx](resources/js/Components/InputError.tsx)), cleanly decoupled
+  from server-side Blade components.
 * **Reactive Session Flash Messages:** Automatic propagation of Laravel session status notifications (`status` and
   `status_type`) through Inertia shared props to render feedback banners on the UI after creating, updating, or deleting
   expenses.
@@ -56,20 +54,35 @@ querying and conversational expense creation with automated UI state synchroniza
 
 Below is the routing architecture for budgets and expenses:
 
-| HTTP Method | URI Path                     | Route Name               | Controller & Action          | Description                         |
-|:------------|:-----------------------------|:-------------------------|:-----------------------------|:------------------------------------|
-| `GET`       | `/dashboard`                 | `dashboard`              | `BudgetController@index`     | User dashboard listing budgets      |
-| `GET`       | `/budgets`                   | `budgets.index`          | `BudgetController@index`     | List user budgets                   |
-| `POST`      | `/budgets`                   | `budgets.store`          | `BudgetController@store`     | Create a new budget                 |
-| `GET`       | `/budgets/{budget}`          | `budgets.show`           | `BudgetController@show`      | View budget details & expense list  |
-| `PUT`       | `/budgets/{budget}`          | `budgets.update`         | `BudgetController@update`    | Update budget details               |
-| `DELETE`    | `/budgets/{budget}`          | `budgets.destroy`        | `BudgetController@destroy`   | Soft delete budget                  |
-| `POST`      | `/budgets/{budget}/chat`     | `budgets.chat`           | `BudgetChatController@store` | Stream AI agent chat for budget     |
-| `POST`      | `/budgets/{budget}/expenses` | `budgets.expenses.store` | `ExpenseController@store`    | Create expense under budget         |
-| `PUT`       | `/expenses/{expense}`        | `expenses.update`        | `ExpenseController@update`   | Update expense (Shallow route)      |
-| `DELETE`    | `/expenses/{expense}`        | `expenses.destroy`       | `ExpenseController@destroy`  | Soft delete expense (Shallow route) |
+| HTTP Method | URI Path                           | Route Name               | Controller & Action                     | Description                         |
+|:------------|:-----------------------------------|:-------------------------|:----------------------------------------|:------------------------------------|
+| `GET`       | `/`                                | `welcome`                | `Closure`                               | Welcome / landing page              |
+| `GET`       | `/dashboard`                       | `dashboard`              | `BudgetController@index`                | User dashboard listing budgets      |
+| `GET`       | `/budgets`                         | `budgets.index`          | `BudgetController@index`                | List user budgets                   |
+| `POST`      | `/budgets`                         | `budgets.store`          | `BudgetController@store`                | Create a new budget                 |
+| `GET`       | `/budgets/create`                  | `budgets.create`         | `BudgetController@create`               | Show create budget form             |
+| `GET`       | `/budgets/{budget}`                | `budgets.show`           | `BudgetController@show`                 | View budget details & expense list  |
+| `PUT`       | `/budgets/{budget}`                | `budgets.update`         | `BudgetController@update`               | Update budget details               |
+| `DELETE`    | `/budgets/{budget}`                | `budgets.destroy`        | `BudgetController@destroy`              | Soft delete budget                  |
+| `GET`       | `/budgets/{budget}/edit`           | `budgets.edit`           | `BudgetController@edit`                 | Show edit budget form               |
+| `POST`      | `/budgets/{budget}/chat`           | `budgets.chat`           | `BudgetChatController@store`            | Stream AI agent chat for budget     |
+| `POST`      | `/budgets/{budget}/expenses`       | `budgets.expenses.store` | `ExpenseController@store`               | Create expense under budget         |
+| `PUT`       | `/expenses/{expense}`              | `expenses.update`        | `ExpenseController@update`              | Update expense (Shallow route)      |
+| `DELETE`    | `/expenses/{expense}`              | `expenses.destroy`       | `ExpenseController@destroy`             | Soft delete expense (Shallow route) |
+| `GET`       | `/auth/login`                      | `login`                  | `LoginController@index`                 | Show login form                     |
+| `POST`      | `/auth/login`                      | `login.store`            | `LoginController@store`                 | Authenticate user                   |
+| `POST`      | `/auth/logout`                     | `logout`                 | `LoginController@destroy`               | Logout user                         |
+| `GET`       | `/auth/register`                   | `register`               | `RegisterController@index`              | Show registration form              |
+| `POST`      | `/auth/register`                   | `register.store`         | `RegisterController@store`              | Register new user                   |
+| `GET`       | `/email/verify`                    | `verification.notice`    | `Closure`                               | Email verification notice           |
+| `GET`       | `/verify-email/{id}/{hash}`        | `verification.verify`    | `RegisterController@verifyEmail`        | Verify email via signed URL         |
+| `POST`      | `/email/verification-notification` | `verification.send`      | `RegisterController@resendVerification` | Resend verification email           |
+| `GET`       | `/lang/{locale}`                   | `lang.switch`            | `LanguageController@switch`             | Switch application language         |
+| `GET`       | `/settings`                        | `settings`               | `Closure`                               | User settings page                  |
+| `GET`       | `/password/change`                 | `password.edit`          | `Closure`                               | Change password page                |
+| `GET`       | `/admin`                           | `admin.dashboard`        | `Closure`                               | Admin dashboard                     |
 
-### 2. High-Performance Internationalization (i18n)
+### 3. High-Performance Internationalization (i18n)
 
 * **Single Round trip Switcher:** Changing languages uses a query parameter optimization (`?lang=`). The system detects
   the language, updates the session, and renders the translated page in a single HTTP request-response cycle (avoiding
@@ -84,7 +97,7 @@ Below is the routing architecture for budgets and expenses:
   `email_verify_intro`, `email_verify_disclaimer`) across both `en` and `es` dictionaries instead of generic positional
   names.
 
-### 2. Form Submission & Navigation Protection
+### 4. Form Submission & Navigation Protection
 
 * **Global Double-Submit Guard:** A DOM-level listener catches all form submissions, immediately disabling submit
   buttons (`button.disabled = true; pointer-events: none`) to prevent rapid double/triple clicks from queuing multiple
@@ -96,7 +109,7 @@ Below is the routing architecture for budgets and expenses:
   preventing multiple duplicate HTTP GET requests to the server (e.g. rapid clicking on the "Log In" or "Register"
   header links).
 
-### 3. Professional UX & Styling
+### 5. Professional UX & Styling
 
 * **Text Selection Prevention (`select-none`):** Applied to the entire navigation `<header>` and auth `<main>` card
   wrapper. This prevents the browser from highlighting/selecting adjacent text nodes and links (turning them
@@ -108,7 +121,7 @@ Below is the routing architecture for budgets and expenses:
   translation keys in both languages, preventing database `UniqueConstraintViolationException` crashes and returning a
   clean, localized form validation error if a duplicate email is entered.
 
-### 4. Componentized Architecture & Hybrid Frontend
+### 6. Componentized Architecture & Hybrid Frontend
 
 We abstract UI components cleanly across both Blade (server-side) and React (client-side):
 
@@ -124,8 +137,14 @@ We abstract UI components cleanly across both Blade (server-side) and React (cli
 	  and form for creating and editing budget expenses with Zustand state synchronization.
 	* **`<ConfirmDeleteModal />` (`resources/js/Components/ConfirmDeleteModal.tsx`)**: Reusable deletion modal for
 	  confirming budget or expense removal.
+	* **`<ProgressBar />` (`resources/js/Components/ProgressBar.tsx`)**: Visual progress bar displaying budget
+	  consumption percentage with label.
+	* **`<Toast />` & `<ToastContainer />` (`resources/js/Components/Toast.tsx`,
+	  `resources/js/Components/ToastContainer.tsx`)**: Custom toast notification system for user feedback.
+	* **`<FlashToastListener />` (`resources/js/Components/FlashToastListener.tsx`)**: Listens for Inertia flash props
+	  and triggers toast notifications automatically.
 
-### 5. AI Financial Assistant & Agentic Tools
+### 7. AI Financial Assistant & Agentic Tools
 
 * **Streaming Agent Architecture (`BudgetAssistant.php`)**: Built on top of Laravel AI SDK (`laravel/ai`) with
   OpenRouter integration (`openrouter/free` router or custom model options like Qwen 2.5 Coder, Ling 3.0 Flash). Streams
@@ -156,6 +175,7 @@ We abstract UI components cleanly across both Blade (server-side) and React (cli
 * PHP 8.5+
 * Composer
 * Node.js & NPM
+* OpenRouter API Key (required for the AI Financial Assistant)
 
 ### Setup & Local Development
 
@@ -169,6 +189,8 @@ composer run setup
 composer run dev
 ```
 
+> Set `OPENROUTER_API_KEY` in `.env` to enable the AI Financial Assistant.
+
 **Option B: Manual Setup**
 
 1. Install dependencies & configure environment:
@@ -178,6 +200,12 @@ composer run dev
    npm install
    cp .env.example .env
    php artisan key:generate
+   ```
+
+   Set your OpenRouter API key in `.env`:
+
+   ```env
+   OPENROUTER_API_KEY=your_openrouter_api_key_here
    ```
 
 2. Run database migrations:
@@ -334,6 +362,8 @@ CashTracker features a robust, professional test suite powered by **Pest PHP 4**
 	  restrictions, and Inertia flash prop sharing.
 	* **Internationalization (i18n):** Multi-language assertions (`en` and `es`) across forms, views, notifications, and
 	  validation error messages.
+	* **AI Tools & Agent:** Unit tests for `SearchExpenses`, `AddExpense` tools and `BudgetAssistant` agent
+	  (`tests/Unit/Ai/Tools/`, `tests/Unit/Ai/Agents/`).
 
 ### Running Tests
 
