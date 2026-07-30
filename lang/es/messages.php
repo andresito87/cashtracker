@@ -202,4 +202,5 @@ return [
     'agent_placeholder' => 'Consulta dudas sobre tu presupuesto o añade gastos...',
     'agent_upload_ticket' => 'Subir Ticket',
     'agent_consult' => 'Consultar',
+    'agent_thinking' => 'Pensando...',
 ];

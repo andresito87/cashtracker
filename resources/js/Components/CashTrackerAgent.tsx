@@ -1,31 +1,28 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {useTranslation} from '@/hooks/useTranslation';
 import {useChat} from '@ai-sdk/react';
-import {DefaultChatTransport} from "ai";
-import {Toast} from "@/Components/Toast";
+import {DefaultChatTransport} from 'ai';
+import {Toast} from '@/Components/Toast';
 import toast from 'react-hot-toast';
-import {router} from "@inertiajs/react";
+import {router} from '@inertiajs/react';
+import {useTicketScan} from '@/hooks/useTicketScan';
+import {ChatMessageItem} from '@/Components/ChatMessageItem';
 
 type Props = {
-	budgetId: number
-}
+	budgetId: number;
+};
 
-export default function CashTrackerAgent({budgetId}: Props) {
+export const CashTrackerAgent = ({budgetId}: Props) => {
 	const {t} = useTranslation();
 	const [input, setInput] = useState('');
-	const fileInputRef = useRef<HTMLInputElement>(null);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 
-	const {sendMessage, messages, status} = useChat({
+	const {sendMessage, messages, status, setMessages} = useChat({
 		transport: new DefaultChatTransport({
 			api: `/budgets/${budgetId}/chat`,
 		}),
 		onFinish: ({message}) => {
 			const expenseCreated = message.parts.find((part) => {
-				// Check based on output and its content, if available
-				// if (!part.output) return null;
-				// return part.output.startWith('[EXPENSE_CREATED]');
-
 				const isAddExpenseTool = part.type === 'tool-AddExpense';
 				const finished = 'state' in part && part.state === 'output-available';
 
@@ -53,20 +50,23 @@ export default function CashTrackerAgent({budgetId}: Props) {
 		}
 	});
 
+	const {isUploadingTicket, fileInputRef, handleUploadClick, handleFileChange} = useTicketScan({
+		budgetId,
+		setMessages,
+	});
+
 	const isLoading = status === 'submitted' || status === 'streaming';
+	const isProcessing = isLoading || isUploadingTicket;
 
 	useEffect(() => {
 		messagesEndRef.current?.scrollIntoView({behavior: 'smooth'});
-	}, [messages, status]);
+	}, [messages, status, isUploadingTicket]);
 
-	const handleUploadClick = () => {
-		fileInputRef.current?.click();
-	};
-
-	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0];
-		if (file) {
-			// Handle file selection logic when implemented
+	const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		if (input.trim() && !isProcessing) {
+			sendMessage({text: input.trim()}).then();
+			setInput('');
 		}
 	};
 
@@ -96,131 +96,11 @@ export default function CashTrackerAgent({budgetId}: Props) {
 			{messages.length > 0 && (
 				<div
 					className="min-h-88 max-h-128 sm:max-h-152 overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-thumb-gray-200">
-					{messages.map((message) => {
-						const isUser = message.role === 'user';
-						const textParts = (message.parts || []).filter((part) => part.type === 'text');
-						const rawContent = (message as any).content;
-						const hasText = textParts.length > 0 || (typeof rawContent === 'string' && rawContent.trim() !== '');
+					{messages.map((message) => (
+						<ChatMessageItem key={message.id} message={message as any}/>
+					))}
 
-						if (!hasText) return null;
-
-						const cleanRawMessageText = (text: string): string => {
-							if (!text) return '';
-							let cleaned = text;
-
-							// Remove <think>...</think> blocks
-							cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/gi, '');
-
-							// Remove [EXPENSE_CREATED] tags
-							cleaned = cleaned.replace(/\[EXPENSE_CREATED]/g, '');
-
-							// If internal CoT end tags exist, extract the text after the last end tag
-							if (cleaned.includes('<|end|>')) {
-								const parts = cleaned.split('<|end|>');
-								cleaned = parts[parts.length - 1];
-							}
-							if (cleaned.includes('<|im_end|>')) {
-								const parts = cleaned.split('<|im_end|>');
-								cleaned = parts[parts.length - 1];
-							}
-
-							// Remove leftover special tags
-							cleaned = cleaned.replace(/<\|[a-z_0-9|-]+\|>/gi, '');
-
-							return cleaned.trim();
-						};
-
-						const renderFormattedText = (rawText: string) => {
-							const text = cleanRawMessageText(rawText);
-							if (!text) return null;
-
-							const lines = text.split('\n');
-							return lines.map((line, lineIdx) => {
-								const parts = line.split(/(`[^`]+`|\*\*.*?\*\*)/g);
-								const formattedLine = parts.map((chunk, chunkIdx) => {
-									if (chunk.startsWith('`') && chunk.endsWith('`') && chunk.length > 2) {
-										return (
-											<code
-												key={chunkIdx}
-												className={
-													isUser
-														? 'bg-purple-950 text-purple-200 px-1.5 py-0.5 rounded font-mono text-xs'
-														: 'bg-slate-200 text-purple-950 px-1.5 py-0.5 rounded font-mono text-xs font-semibold'
-												}
-											>
-												{chunk.slice(1, -1)}
-											</code>
-										);
-									}
-									if (chunk.startsWith('**') && chunk.endsWith('**') && chunk.length > 4) {
-										return (
-											<strong key={chunkIdx}
-											        className={isUser ? 'font-bold text-white' : 'font-bold text-gray-900'}>
-												{chunk.slice(2, -2)}
-											</strong>
-										);
-									}
-									return chunk;
-								});
-
-								return (
-									<React.Fragment key={lineIdx}>
-										{formattedLine.map((item) => (
-											<div>
-												{item}
-											</div>
-										))}
-										{lineIdx < lines.length - 1 && <br/>}
-									</React.Fragment>
-								);
-							});
-						};
-
-						const fullText = textParts.length > 0
-							? textParts.map((p: any) => p.text || '').join('\n')
-							: rawContent || '';
-
-						const renderedContent = renderFormattedText(fullText);
-
-						// If the message has no clean text (e.g. while thinking or executing tools), don't show empty bubble
-						if (!renderedContent) return null;
-
-						return (
-							<div
-								key={message.id}
-								className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}
-							>
-								{!isUser && (
-									<div
-										className="w-8 h-8 rounded-xl bg-[#1b0e35] text-white flex items-center justify-center shrink-0 text-xs font-bold shadow-xs">
-										AI
-									</div>
-								)}
-								<div
-									className={`max-w-[85%] rounded-2xl p-4 text-sm shadow-2xs ${
-										isUser
-											? 'bg-[#1b0e35] text-white rounded-br-none'
-											: 'bg-slate-100/80 text-gray-800 border border-slate-200/60 rounded-bl-none'
-									}`}
-								>
-									<div className="leading-relaxed">
-										{renderedContent.map((item) => (
-											<div>
-												{item}
-											</div>
-										))}
-									</div>
-								</div>
-								{isUser && (
-									<div
-										className="w-8 h-8 rounded-xl bg-purple-100 text-purple-900 flex items-center justify-center shrink-0 text-xs font-bold shadow-xs border border-purple-200">
-										TÚ
-									</div>
-								)}
-							</div>
-						);
-					})}
-					{isLoading && (
+					{isProcessing && (
 						<div className="flex gap-3 justify-start items-center text-xs text-gray-400">
 							<div
 								className="w-8 h-8 rounded-xl bg-[#1b0e35] text-white flex items-center justify-center shrink-0 text-xs font-bold opacity-60">
@@ -239,15 +119,7 @@ export default function CashTrackerAgent({budgetId}: Props) {
 			)}
 
 			{/* Chat Input & Form Area */}
-			<form
-				onSubmit={(e) => {
-					e.preventDefault();
-					if (input.trim()) {
-						sendMessage({text: input.trim()}).then();
-						setInput('');
-					}
-				}}
-				className="space-y-4">
+			<form onSubmit={handleSubmit} className="space-y-4">
 				<textarea
 					value={input}
 					onChange={(e) => setInput(e.target.value)}
@@ -260,7 +132,8 @@ export default function CashTrackerAgent({budgetId}: Props) {
 					<button
 						type="button"
 						onClick={handleUploadClick}
-						className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4.5 py-2.5 rounded-xl bg-white hover:bg-purple-50/70 text-purple-950 border border-purple-200/90 font-bold text-xs sm:text-sm shadow-2xs transition-all duration-200 active:scale-95 cursor-pointer"
+						disabled={isProcessing}
+						className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4.5 py-2.5 rounded-xl bg-white hover:bg-purple-50/70 text-purple-950 border border-purple-200/90 font-bold text-xs sm:text-sm shadow-2xs transition-all duration-200 active:scale-95 cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
 					>
 						<svg className="w-4 h-4 text-purple-900 shrink-0" fill="none" viewBox="0 0 24 24"
 						     stroke="currentColor" strokeWidth="2">
@@ -273,14 +146,18 @@ export default function CashTrackerAgent({budgetId}: Props) {
 
 					<button
 						type="submit"
-						disabled={!input.trim() || isLoading}
+						disabled={!input.trim() || isProcessing}
 						className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-[#1b0e35] hover:bg-[#28154e] text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
 					>
 						<svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"
 						     strokeWidth="2.5">
 							<path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3 21l19-9L3 3l3 9zm0 0h7"/>
 						</svg>
-						<span>{t('agent_consult') !== 'agent_consult' ? t('agent_consult') : 'Consultar'}</span>
+						<span>
+							{isProcessing
+								? (t('agent_thinking') !== 'agent_thinking' ? t('agent_thinking') : 'Pensando...')
+								: (t('agent_consult') !== 'agent_consult' ? t('agent_consult') : 'Consultar')}
+						</span>
 					</button>
 				</div>
 				<input
@@ -293,5 +170,4 @@ export default function CashTrackerAgent({budgetId}: Props) {
 			</form>
 		</section>
 	);
-}
-
+};

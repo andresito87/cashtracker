@@ -202,4 +202,5 @@ return [
     'agent_placeholder' => 'Ask about your budget or add expenses...',
     'agent_upload_ticket' => 'Upload Receipt',
     'agent_consult' => 'Send Query',
+    'agent_thinking' => 'Thinking...',
 ];

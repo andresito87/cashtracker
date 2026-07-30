@@ -11,7 +11,7 @@ import {ProgressBar} from '@/Components/ProgressBar'
 import {useExpenseModalStore} from '@/store/expense-modal-store'
 import {Category} from "@/types/Category"
 import {getCategoryMeta} from '@/constants/category-config'
-import CashTrackerAgent from "@/Components/CashTrackerAgent";
+import {CashTrackerAgent} from "@/Components/CashTrackerAgent";
 
 interface ShowProps {
 	budget: Budget,
