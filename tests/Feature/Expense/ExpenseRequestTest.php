@@ -128,6 +128,22 @@ it('prevents creating an expense that exceeds the available budget balance', fun
     ]))->assertSessionHasErrors(['amount']);
 });
 
+it('allows creating an expense that exactly matches the remaining budget balance', function () {
+    $user = actingAsVerifiedUser();
+    $budget = Budget::factory()->for($user)->create([
+        'amount' => 100,
+    ]);
+
+    Expense::factory()->for($budget)->create([
+        'amount' => 70,
+    ]);
+
+    $this->post(route('budgets.expenses.store', $budget), validExpensePayload([
+        'name' => 'Exact Limit Expense',
+        'amount' => 30,
+    ]))->assertRedirect();
+});
+
 it('prevents updating an expense to an amount exceeding the remaining budget balance', function () {
     $user = actingAsVerifiedUser();
     $budget = Budget::factory()->for($user)->create([

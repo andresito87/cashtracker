@@ -45,7 +45,9 @@ it('forbids a regular user from updating another users expense and renders custo
         'name' => 'Hacked Expense',
     ]);
 
-    expect($otherExpense->fresh()->name)->toBe('Original Expense');
+    $updated = $otherExpense->fresh();
+    assert($updated instanceof Expense);
+    expect($updated->name)->toBe('Original Expense');
 });
 
 it('forbids a regular user from deleting another users expense and renders custom 403 page', function () {
@@ -93,7 +95,9 @@ it('allows an admin user to create update and delete expenses for any users budg
         ->assertRedirect()
         ->assertSessionHas('status', __('messages.expense_updated'));
 
-    expect($expense->fresh()->name)->toBe('Admin Updated Expense');
+    $updated = $expense->fresh();
+    assert($updated instanceof Expense);
+    expect($updated->name)->toBe('Admin Updated Expense');
 
     // Delete
     $this->delete(route('expenses.destroy', $expense))
@@ -151,4 +155,24 @@ it('returns 404 when attempting to update or delete a soft deleted expense', fun
 
     $this->delete(route('expenses.destroy', $expense))
         ->assertNotFound();
+});
+
+it('redirects unauthenticated users to the login page', function () {
+    $budget = Budget::factory()->create();
+    $expense = Expense::factory()->for($budget)->create();
+
+    $this->post(route('budgets.expenses.store', $budget), [
+        'name' => 'Guest Expense',
+        'amount' => 10,
+        'category' => 'food',
+    ])->assertRedirect(route('login'));
+
+    $this->put(route('expenses.update', $expense), [
+        'name' => 'Guest Update',
+        'amount' => 15,
+        'category' => 'food',
+    ])->assertRedirect(route('login'));
+
+    $this->delete(route('expenses.destroy', $expense))
+        ->assertRedirect(route('login'));
 });

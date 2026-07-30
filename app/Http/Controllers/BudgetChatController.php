@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Ai\Agents\BudgetAssistant;
 use App\Models\Budget;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class BudgetChatController extends Controller
 {
     public function store(Request $request, Budget $budget)
     {
+        Gate::authorize('view', $budget);
+
         set_time_limit(120);
 
         $messages = $request->input('messages', []);
@@ -20,7 +23,7 @@ class BudgetChatController extends Controller
             ->implode(' ')
 			?: data_get($lastMessages, 'content', '');
 
-        $agent = new BudgetAssistant;
+        $agent = app(BudgetAssistant::class);
         $agent->budgetId = $budget->id;
         $formattedBudgetAmount = $budget->formattedAmount();
         $agent->budgetContext = "Este presupuesto es de tipo '{$budget->type->value}' llamado '$budget->name' con un monto total de $formattedBudgetAmount. Los gastos tienen nombre, monto y categoría.";

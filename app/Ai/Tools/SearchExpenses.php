@@ -37,20 +37,22 @@ class SearchExpenses implements Tool
         $query = Expense::where('budget_id', $budget->id);
 
         if (! empty($request['name'] ?? null)) {
-            $query->where('name', 'ilike', '%'.trim((string) $request['name']).'%');
+            $term = strtolower(trim((string) $request['name']));
+            $query->whereRaw('LOWER(name) LIKE ?', ["%$term%"]);
         }
 
         if (! empty($request['category'] ?? null)) {
-            $query->where('category', 'ilike', '%'.trim((string) $request['category']).'%');
+            $term = strtolower(trim((string) $request['category']));
+            $query->whereRaw('LOWER(category) LIKE ?', ["%$term%"]);
         }
 
         $sortBy = strtolower(trim((string) ($request['sort_by'] ?? '')));
 
         match ($sortBy) {
-            'amount_desc' => $query->orderBy('amount', 'desc'),
+            'amount_desc' => $query->orderByDesc('amount'),
             'amount_asc' => $query->orderBy('amount', 'asc'),
-            'oldest' => $query->orderBy('created_at', 'asc'),
-            default => $query->orderBy('created_at', 'desc'),
+            'oldest' => $query->oldest(),
+            default => $query->latest(),
         };
 
         // Take up to 30 items to prevent context window overflow

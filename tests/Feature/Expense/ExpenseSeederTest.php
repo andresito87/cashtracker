@@ -25,7 +25,7 @@ it('seeds expenses for all budgets of all users', function () {
 it('tests user expenses hasManyThrough relationship', function () {
     $this->seed(DatabaseSeeder::class);
 
-    $user = User::where('email', 'andres@example.com')->firstOrFail();
+    $user = User::has('expenses')->firstOrFail();
 
     expect($user->expenses)->not->toBeEmpty()
         ->and($user->expenses->first()->budget->user_id)->toBe($user->id);

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ExpenseCategory;
 use App\Models\Budget;
 use App\Models\Expense;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -23,6 +24,12 @@ it('creates an expense for an owned budget', function () {
         'amount' => 85.50,
         'category' => 'food',
     ]);
+
+    $expense = Expense::where('budget_id', $budget->id)->firstOrFail();
+    assert($expense instanceof Expense);
+    expect($expense->name)->toBe('Supermarket Groceries')
+        ->and($expense->amount)->toBe('85.50')
+        ->and($expense->category)->toBe(ExpenseCategory::Food);
 });
 
 it('updates an owned expense', function () {
@@ -42,10 +49,11 @@ it('updates an owned expense', function () {
         ->assertRedirect()
         ->assertSessionHas('status', __('messages.expense_updated'));
 
-    expect($expense->fresh())
-        ->name->toBe('Updated Expense Name')
-        ->amount->toBe('25.99')
-        ->category->toBe('entertainment');
+    $updated = $expense->fresh();
+    assert($updated instanceof Expense);
+    expect($updated->name)->toBe('Updated Expense Name')
+        ->and($updated->amount)->toBe('25.99')
+        ->and($updated->category)->toBe(ExpenseCategory::Entertainment);
 });
 
 it('soft deletes an owned expense', function () {
@@ -134,7 +142,9 @@ it('allows an admin to create update and delete an expense on any budget', funct
         ->assertRedirect()
         ->assertSessionHas('status', __('messages.expense_updated'));
 
-    expect($expense->fresh()->name)->toBe('Admin Expense Updated');
+    $updated = $expense->fresh();
+    assert($updated instanceof Expense);
+    expect($updated->name)->toBe('Admin Expense Updated');
 
     // Admin deletes expense
     $this->actingAs($admin)

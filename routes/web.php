@@ -85,5 +85,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
     Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
 
-    Route::post('/budgets/{budget}/chat', [BudgetChatController::class, 'store'])->name('budgets.store');
+    Route::post('/budgets/{budget}/chat', [BudgetChatController::class, 'store'])->name('budgets.chat');
 });
