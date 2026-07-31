@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Cashier\Billable;
 
 /**
  * @property int $id
@@ -40,7 +41,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use Billable, HasFactory, Notifiable;
 
     public function sendEmailVerificationNotification(): void
     {
@@ -92,5 +93,48 @@ class User extends Authenticatable implements MustVerifyEmail
     public function expenses(): HasManyThrough
     {
         return $this->hasManyThrough(Expense::class, Budget::class);
+    }
+
+    private function currentPlan(): ?string
+    {
+        $subscription = $this->subscription();
+
+        if ($subscription && $subscription->active()) {
+            return $subscription->stripe_price;
+        }
+
+        return null;
+    }
+
+    public function isMonthlySubscribed(): bool
+    {
+        $price = $this->currentPlan();
+        if (! $price) {
+            return false;
+        }
+
+        $monthlyPrices = array_filter([
+            config('services.stripe.price_ai_monthly'),
+            config('services.stripe.prices.EUR.monthly'),
+            config('services.stripe.prices.USD.monthly'),
+        ]);
+
+        return in_array($price, $monthlyPrices, true);
+    }
+
+    public function isYearlySubscribed(): bool
+    {
+        $price = $this->currentPlan();
+        if (! $price) {
+            return false;
+        }
+
+        $yearlyPrices = array_filter([
+            config('services.stripe.price_ai_yearly'),
+            config('services.stripe.prices.EUR.yearly'),
+            config('services.stripe.prices.USD.yearly'),
+        ]);
+
+        return in_array($price, $yearlyPrices, true);
     }
 }

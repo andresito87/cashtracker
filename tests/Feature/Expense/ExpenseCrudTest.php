@@ -7,7 +7,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 it('creates an expense for an owned budget', function () {
     $user = createVerifiedUser();
-    $budget = Budget::factory()->for($user)->create();
+    $budget = Budget::factory()->for($user)->create(['amount' => 500]);
 
     $this->actingAs($user)
         ->post(route('budgets.expenses.store', $budget), [
@@ -34,7 +34,7 @@ it('creates an expense for an owned budget', function () {
 
 it('updates an owned expense', function () {
     $user = createVerifiedUser();
-    $budget = Budget::factory()->for($user)->create();
+    $budget = Budget::factory()->for($user)->create(['amount' => 500]);
     $expense = Expense::factory()->for($budget)->create([
         'name' => 'Old Name',
         'amount' => 10,

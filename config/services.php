@@ -35,4 +35,19 @@ return [
         ],
     ],
 
+    'stripe' => [
+        'price_ai_monthly' => env('STRIPE_PRICE_AI_MONTHLY'),
+        'price_ai_yearly' => env('STRIPE_PRICE_AI_YEARLY'),
+        'secret' => env('STRIPE_SECRET'),
+        'prices' => [
+            'EUR' => [
+                'monthly' => env('STRIPE_PRICE_EUR_MONTHLY', env('STRIPE_PRICE_AI_MONTHLY')),
+                'yearly' => env('STRIPE_PRICE_EUR_YEARLY', env('STRIPE_PRICE_AI_YEARLY')),
+            ],
+            'USD' => [
+                'monthly' => env('STRIPE_PRICE_USD_MONTHLY', env('STRIPE_PRICE_AI_MONTHLY')),
+                'yearly' => env('STRIPE_PRICE_USD_YEARLY', env('STRIPE_PRICE_AI_YEARLY')),
+            ],
+        ],
+    ],
 ];

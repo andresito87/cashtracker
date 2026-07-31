@@ -11,12 +11,12 @@
 				<div>
 					<a href="{{ route('dashboard') }}"
 					   onclick="if (this.hasAttribute('data-clicked')) { return false; } this.setAttribute('data-clicked', 'true'); this.classList.add('opacity-75', 'cursor-not-allowed', 'pointer-events-none');"
-					   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 font-semibold text-xs uppercase tracking-wider shadow-xs transition-all duration-200 active:scale-95 mb-3 group">
-						<svg class="w-4 h-4 text-purple-900 transition-transform group-hover:-translate-x-1"
+					   class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-purple-900/80 hover:text-purple-900 transition-colors mb-2 group">
+						<svg class="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5"
 						     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
 						     stroke="currentColor">
 							<path stroke-linecap="round" stroke-linejoin="round"
-							      d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+							      d="M15.75 19.5L8.25 12l7.5-7.5"/>
 						</svg>
 						<span>{{ __('messages.back_to_list') }}</span>
 					</a>

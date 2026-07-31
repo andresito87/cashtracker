@@ -6,6 +6,7 @@ use App\Http\Controllers\BudgetChatController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TicketScanController;
 use Illuminate\Support\Facades\Route;
 
@@ -88,4 +89,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/budgets/{budget}/chat', [BudgetChatController::class, 'store'])->name('budgets.chat');
     Route::post('/budgets/{budget}/scan-ticket', [TicketScanController::class, 'store'])->name('budgets.scan-ticket');
+
+    Route::post('/subscription-checkout/{plan}',
+        [SubscriptionController::class, 'checkout'])->name('subscription.checkout');
+    Route::get('/subscription', [SubscriptionController::class, 'manage'])
+        ->name('subscription.manage');
+    Route::get('/plans', [SubscriptionController::class, 'manage'])
+        ->name('plans');
+    Route::post('/subscription/swap/{plan}', [SubscriptionController::class, 'swap'])
+        ->name('subscription.swap')
+        ->whereIn('plan', ['monthly', 'yearly']);
+    Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel'])
+        ->name('subscription.cancel');
+    Route::post('/subscription/resume', [SubscriptionController::class, 'resume'])
+        ->name('subscription.resume');
+
+    Route::get('/billing/success', [SubscriptionController::class, 'success'])->name('billing.success');
+    Route::get('/billing/cancel', [SubscriptionController::class, 'cancelUrl'])->name('billing.cancel');
+
 });

@@ -15,6 +15,7 @@ conversational expense creation with automated UI state synchronization.
 ## Technical Stack
 
 * **Backend Framework:** Laravel 13 (PHP 8.5+)
+* **Subscription & Payments Engine:** Laravel Cashier (`laravel/cashier` v16) with Stripe Checkout Integration
 * **AI & Agent Engine:** Laravel AI SDK (`laravel/ai`) with OpenRouter Gateway
 * **Frontend Architecture:** Inertia.js v3 with React 19, TypeScript & `@ai-sdk/react`
 * **Database Engine:** SQLite (Local Development), PostgreSQL (Production Supported), SQLite In-Memory (Testing)
@@ -50,37 +51,61 @@ conversational expense creation with automated UI state synchronization.
 
 ---
 
+### 2. PRO Subscriptions & Multi-Currency Billing Engine (Laravel Cashier + Stripe)
+
+* **Multi-Currency Dynamic Pricing (EUR / USD):** Dynamically selects the appropriate Stripe Price ID based on the
+  authenticated user's selected currency (`$user->currency`), defaulting to EUR (39€/mo, 299€/yr) or USD ($39/mo, $
+  299/yr) with localized price formatting across all views.
+* **Laravel Cashier Integration:** Built using Laravel Cashier v16 to manage Stripe Checkout sessions, active
+  subscriptions (`default`), grace period tracking (`onGracePeriod()`), plan swapping (`swap()`), cancellation
+  (`cancel()`), and reactivation (`resume()`).
+* **Interactive Pricing & Subscription Dashboard:** A modern React page component
+  ([Manage.tsx](resources/js/Pages/Subscriptions/Manage.tsx) & [PricingTable.tsx](resources/js/Components/PricingTable.tsx))
+  featuring real-time loading feedback, active plan indicators, grace period banners, and instant plan swapping.
+* **Localized Payment Success & Cancellation Flow:** Custom, branded Blade views (`billing.success` and
+  `billing.cancel`) with 100% i18n key translation support in both Spanish and English.
+
+---
+
 ### Application Routes Reference
 
-Below is the routing architecture for budgets and expenses:
+Below is the routing architecture for budgets, expenses, and PRO subscriptions:
 
-| HTTP Method | URI Path                           | Route Name               | Controller & Action                     | Description                         |
-|:------------|:-----------------------------------|:-------------------------|:----------------------------------------|:------------------------------------|
-| `GET`       | `/`                                | `welcome`                | `Closure`                               | Welcome / landing page              |
-| `GET`       | `/dashboard`                       | `dashboard`              | `BudgetController@index`                | User dashboard listing budgets      |
-| `GET`       | `/budgets`                         | `budgets.index`          | `BudgetController@index`                | List user budgets                   |
-| `POST`      | `/budgets`                         | `budgets.store`          | `BudgetController@store`                | Create a new budget                 |
-| `GET`       | `/budgets/create`                  | `budgets.create`         | `BudgetController@create`               | Show create budget form             |
-| `GET`       | `/budgets/{budget}`                | `budgets.show`           | `BudgetController@show`                 | View budget details & expense list  |
-| `PUT`       | `/budgets/{budget}`                | `budgets.update`         | `BudgetController@update`               | Update budget details               |
-| `DELETE`    | `/budgets/{budget}`                | `budgets.destroy`        | `BudgetController@destroy`              | Soft delete budget                  |
-| `GET`       | `/budgets/{budget}/edit`           | `budgets.edit`           | `BudgetController@edit`                 | Show edit budget form               |
-| `POST`      | `/budgets/{budget}/chat`           | `budgets.chat`           | `BudgetChatController@store`            | Stream AI agent chat for budget     |
-| `POST`      | `/budgets/{budget}/expenses`       | `budgets.expenses.store` | `ExpenseController@store`               | Create expense under budget         |
-| `PUT`       | `/expenses/{expense}`              | `expenses.update`        | `ExpenseController@update`              | Update expense (Shallow route)      |
-| `DELETE`    | `/expenses/{expense}`              | `expenses.destroy`       | `ExpenseController@destroy`             | Soft delete expense (Shallow route) |
-| `GET`       | `/auth/login`                      | `login`                  | `LoginController@index`                 | Show login form                     |
-| `POST`      | `/auth/login`                      | `login.store`            | `LoginController@store`                 | Authenticate user                   |
-| `POST`      | `/auth/logout`                     | `logout`                 | `LoginController@destroy`               | Logout user                         |
-| `GET`       | `/auth/register`                   | `register`               | `RegisterController@index`              | Show registration form              |
-| `POST`      | `/auth/register`                   | `register.store`         | `RegisterController@store`              | Register new user                   |
-| `GET`       | `/email/verify`                    | `verification.notice`    | `Closure`                               | Email verification notice           |
-| `GET`       | `/verify-email/{id}/{hash}`        | `verification.verify`    | `RegisterController@verifyEmail`        | Verify email via signed URL         |
-| `POST`      | `/email/verification-notification` | `verification.send`      | `RegisterController@resendVerification` | Resend verification email           |
-| `GET`       | `/lang/{locale}`                   | `lang.switch`            | `LanguageController@switch`             | Switch application language         |
-| `GET`       | `/settings`                        | `settings`               | `Closure`                               | User settings page                  |
-| `GET`       | `/password/change`                 | `password.edit`          | `Closure`                               | Change password page                |
-| `GET`       | `/admin`                           | `admin.dashboard`        | `Closure`                               | Admin dashboard                     |
+| HTTP Method | URI Path                           | Route Name               | Controller & Action                     | Description                                      |
+|:------------|:-----------------------------------|:-------------------------|:----------------------------------------|:-------------------------------------------------|
+| `GET`       | `/`                                | `welcome`                | `Closure`                               | Welcome / landing page                           |
+| `GET`       | `/dashboard`                       | `dashboard`              | `BudgetController@index`                | User dashboard listing budgets                   |
+| `GET`       | `/budgets`                         | `budgets.index`          | `BudgetController@index`                | List user budgets                                |
+| `POST`      | `/budgets`                         | `budgets.store`          | `BudgetController@store`                | Create a new budget                              |
+| `GET`       | `/budgets/create`                  | `budgets.create`         | `BudgetController@create`               | Show create budget form                          |
+| `GET`       | `/budgets/{budget}`                | `budgets.show`           | `BudgetController@show`                 | View budget details & expense list               |
+| `PUT`       | `/budgets/{budget}`                | `budgets.update`         | `BudgetController@update`               | Update budget details                            |
+| `DELETE`    | `/budgets/{budget}`                | `budgets.destroy`        | `BudgetController@destroy`              | Soft delete budget                               |
+| `GET`       | `/budgets/{budget}/edit`           | `budgets.edit`           | `BudgetController@edit`                 | Show edit budget form                            |
+| `POST`      | `/budgets/{budget}/chat`           | `budgets.chat`           | `BudgetChatController@store`            | Stream AI agent chat for budget                  |
+| `POST`      | `/budgets/{budget}/expenses`       | `budgets.expenses.store` | `ExpenseController@store`               | Create expense under budget                      |
+| `PUT`       | `/expenses/{expense}`              | `expenses.update`        | `ExpenseController@update`              | Update expense (Shallow route)                   |
+| `DELETE`    | `/expenses/{expense}`              | `expenses.destroy`       | `ExpenseController@destroy`             | Soft delete expense (Shallow route)              |
+| `GET`       | `/plans`                           | `plans`                  | `SubscriptionController@manage`         | PRO plans & subscription management page         |
+| `POST`      | `/subscription-checkout/{plan}`    | `subscription.checkout`  | `SubscriptionController@checkout`       | Create Stripe checkout session for plan          |
+| `GET`       | `/subscription`                    | `subscription.manage`    | `SubscriptionController@manage`         | User subscription management route               |
+| `POST`      | `/subscription/swap/{plan}`        | `subscription.swap`      | `SubscriptionController@swap`           | Swap active subscription plan (monthly / yearly) |
+| `POST`      | `/subscription/cancel`             | `subscription.cancel`    | `SubscriptionController@cancel`         | Cancel active subscription                       |
+| `POST`      | `/subscription/resume`             | `subscription.resume`    | `SubscriptionController@resume`         | Resume canceled subscription on grace period     |
+| `GET`       | `/billing/success`                 | `billing.success`        | `Closure`                               | Stripe checkout success confirmation page        |
+| `GET`       | `/billing/cancel`                  | `billing.cancel`         | `Closure`                               | Stripe checkout cancellation page                |
+| `GET`       | `/auth/login`                      | `login`                  | `LoginController@index`                 | Show login form                                  |
+| `POST`      | `/auth/login`                      | `login.store`            | `LoginController@store`                 | Authenticate user                                |
+| `POST`      | `/auth/logout`                     | `logout`                 | `LoginController@destroy`               | Logout user                                      |
+| `GET`       | `/auth/register`                   | `register`               | `RegisterController@index`              | Show registration form                           |
+| `POST`      | `/auth/register`                   | `register.store`         | `RegisterController@store`              | Register new user                                |
+| `GET`       | `/email/verify`                    | `verification.notice`    | `Closure`                               | Email verification notice                        |
+| `GET`       | `/verify-email/{id}/{hash}`        | `verification.verify`    | `RegisterController@verifyEmail`        | Verify email via signed URL                      |
+| `POST`      | `/email/verification-notification` | `verification.send`      | `RegisterController@resendVerification` | Resend verification email                        |
+| `GET`       | `/lang/{locale}`                   | `lang.switch`            | `LanguageController@switch`             | Switch application language                      |
+| `GET`       | `/settings`                        | `settings`               | `Closure`                               | User settings page                               |
+| `GET`       | `/password/change`                 | `password.edit`          | `Closure`                               | Change password page                             |
+| `GET`       | `/admin`                           | `admin.dashboard`        | `Closure`                               | Admin dashboard                                  |
 
 ### 3. High-Performance Internationalization (i18n)
 

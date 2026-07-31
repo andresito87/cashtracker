@@ -1,4 +1,4 @@
-import { PageProps as InertiaPageProps } from '@inertiajs/core'
+import {PageProps as InertiaPageProps} from '@inertiajs/core'
 
 export interface SharedData extends InertiaPageProps {
 	auth?: {
@@ -8,6 +8,10 @@ export interface SharedData extends InertiaPageProps {
 			email: string
 			currency?: string
 			currency_symbol?: string
+			subscribed?: boolean
+			on_grace_period?: boolean
+			ends_at?: string | null
+			plan?: 'yearly' | 'monthly' | null
 		}
 	}
 	flash?: {

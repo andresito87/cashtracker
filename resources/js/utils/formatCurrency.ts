@@ -1,6 +1,7 @@
 /**
  * Formats a numeric or string amount into localized currency format using the native Web Intl API.
  * Uses `useGrouping: 'always'` to guarantee a thousand separators on 4+ digit amounts across all locales.
+ * Uses non-breaking space (\u00A0) between amount and symbol to prevent orphan currency symbols on line breaks.
  *
  * In 'es' locale: 1622.00 => "1.622,00 €"
  * In 'en' locale: 1622.00 => "1,622.00 €"
@@ -11,7 +12,7 @@ export function formatCurrency(
 	locale: string = 'es'
 ): string {
 	const amountNum = typeof val === 'string' ? parseFloat(val || '0') : val
-	if (isNaN(amountNum)) return `0${locale === 'en' ? '.00' : ',00'} ${currencySymbol}`
+	if (isNaN(amountNum)) return `0${locale === 'en' ? '.00' : ',00'}\u00A0${currencySymbol}`
 
 	const targetLocale = locale === 'en' ? 'en-US' : 'es-ES'
 
@@ -27,5 +28,5 @@ export function formatCurrency(
 		formatted = formatted.replace(/[\u00A0\u202F]/g, '.')
 	}
 
-	return `${formatted} ${currencySymbol}`
+	return `${formatted}\u00A0${currencySymbol}`
 }

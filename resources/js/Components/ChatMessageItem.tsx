@@ -1,4 +1,5 @@
 import React from 'react';
+import {useTranslation} from '@/hooks/useTranslation';
 
 type ChatMessageItemProps = {
 	message: {
@@ -10,6 +11,7 @@ type ChatMessageItemProps = {
 };
 
 export const ChatMessageItem = ({message}: ChatMessageItemProps) => {
+	const {t} = useTranslation();
 	const isUser = message.role === 'user';
 	const textParts = (message.parts || []).filter((part) => part.type === 'text');
 	const rawContent = message.content;
@@ -121,7 +123,7 @@ export const ChatMessageItem = ({message}: ChatMessageItemProps) => {
 			{isUser && (
 				<div
 					className="w-8 h-8 rounded-xl bg-purple-100 text-purple-900 flex items-center justify-center shrink-0 text-xs font-bold shadow-xs border border-purple-200">
-					TÚ
+					{t('agent_user_avatar')}
 				</div>
 			)}
 		</div>

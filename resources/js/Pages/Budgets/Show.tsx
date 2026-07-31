@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import {Head, router, usePage} from '@inertiajs/react'
+import {Head, Link, router, usePage} from '@inertiajs/react'
 import {route} from 'ziggy-js'
 import {Budget, Expense, SharedData} from '@/types'
 import {useTranslation} from '@/hooks/useTranslation'
@@ -12,6 +12,7 @@ import {useExpenseModalStore} from '@/store/expense-modal-store'
 import {Category} from "@/types/Category"
 import {getCategoryMeta} from '@/constants/category-config'
 import {CashTrackerAgent} from "@/Components/CashTrackerAgent";
+import {PricingTable} from "@/Components/PricingTable";
 
 interface ShowProps {
 	budget: Budget,
@@ -79,30 +80,22 @@ export const Show = ({budget, categories}: ShowProps) => {
 
 					{/* Navigation / Back Action Bar */}
 					<div className="flex items-center justify-between">
-						<a
+						<Link
 							href={route('dashboard')}
-							onClick={(e) => {
-								if (e.currentTarget.getAttribute('data-clicked')) {
-									e.preventDefault();
-									return;
-								}
-								e.currentTarget.setAttribute('data-clicked', 'true');
-								e.currentTarget.classList.add('opacity-75', 'cursor-not-allowed', 'pointer-events-none');
-							}}
-							className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 font-bold text-xs uppercase tracking-wider shadow-2xs transition-all duration-200 active:scale-95 group"
+							className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-purple-900/80 hover:text-purple-900 transition-colors group"
 						>
 							<svg
-								className="w-4 h-4 text-purple-900 transition-transform group-hover:-translate-x-1"
+								className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5"
 								fill="none"
 								viewBox="0 0 24 24"
 								strokeWidth="2.5"
 								stroke="currentColor"
 							>
 								<path strokeLinecap="round" strokeLinejoin="round"
-								      d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+								      d="M15.75 19.5L8.25 12l7.5-7.5"/>
 							</svg>
 							<span>{t('back_to_list')}</span>
-						</a>
+						</Link>
 
 						<span
 							className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-extrabold uppercase tracking-wider ${
@@ -265,8 +258,9 @@ export const Show = ({budget, categories}: ShowProps) => {
 												</div>
 											</div>
 
-											<div className="flex items-center gap-4">
-											<span className="font-black text-base text-gray-900">
+											<div className="flex items-center gap-3 sm:gap-4 shrink-0">
+											<span
+												className="font-black text-base text-gray-900 whitespace-nowrap shrink-0">
 												{formatCurrencyVal(expense.amount)}
 											</span>
 												<div className="flex items-center gap-1">
@@ -325,8 +319,12 @@ export const Show = ({budget, categories}: ShowProps) => {
 						</div>
 					</div>
 
-					{/* Chat to talk with AI agent about your budget, add expenses, and more */}
-					<CashTrackerAgent budgetId={budget.id}/>
+					{/* Chat to talk with AI agent about your budget, add expenses, and more only if user is subscribed*/}
+					{auth?.user?.subscribed ? (
+						<CashTrackerAgent budgetId={budget.id}/>
+					) : (
+						<PricingTable/>
+					)}
 
 					{/* Confirm Delete Budget Modal */}
 					<ConfirmDeleteModal

@@ -21,30 +21,31 @@
 
 <header
 	class="bg-[#1b0e35] border-b border-purple-900/30 text-white sticky top-0 z-50 shadow-sm backdrop-blur-md bg-opacity-95 select-none">
-	<div class="w-full px-4 sm:px-6 lg:px-8">
-		<div class="flex justify-between items-center h-16 sm:h-20">
+	<div class="w-full px-3 sm:px-6 lg:px-8">
+		<div class="flex justify-between items-center h-14 sm:h-20">
 			<!-- Logo -->
 			<div class="shrink-0 flex items-center">
 				<a href="{{ route('welcome') }}"
 				   class="flex items-center gap-2 group transition-transform duration-200 active:scale-95">
-					<img src="{{ asset('logo.png') }}" alt="CashTracker Logo" class="h-8 sm:h-10 w-auto">
+					<img src="{{ asset('logo.png') }}" alt="CashTracker Logo" class="h-7 sm:h-10 w-auto">
 				</a>
 			</div>
 
 			<!-- Header Action Area -->
-			<div class="flex items-center space-x-3 sm:space-x-5">
+			<div class="flex items-center gap-1.5 sm:gap-4 shrink-0">
 				<!-- Navigation Links -->
-				<nav class="flex items-center space-x-2 sm:space-x-4">
+				<nav class="flex items-center gap-1.5 sm:gap-3">
 					@auth
+						<x-subscription-badge/>
 						<x-user-menu/>
 					@else
 						@unless(request()->routeIs('welcome'))
 							<a href="{{ route('login') }}"
-							   class="text-xs sm:text-sm font-semibold text-orange-400 hover:text-white bg-transparent hover:bg-orange-500/10 border border-orange-500/40 hover:border-orange-500/80 px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-lg transition-all duration-200 active:scale-95">
+							   class="text-xs sm:text-sm font-semibold text-orange-400 hover:text-white bg-transparent hover:bg-orange-500/10 border border-orange-500/40 hover:border-orange-500/80 px-2 py-1 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 active:scale-95">
 								{{ __('messages.login') }}
 							</a>
 							<a href="{{ route('register') }}"
-							   class="text-xs sm:text-sm font-semibold text-white bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-lg shadow-md shadow-orange-500/10 hover:shadow-orange-500/25 transition-all duration-200 active:scale-95">
+							   class="text-xs sm:text-sm font-semibold text-white bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 px-2 py-1 sm:px-4 sm:py-2 rounded-lg shadow-md shadow-orange-500/10 hover:shadow-orange-500/25 transition-all duration-200 active:scale-95">
 								{{ __('messages.register') }}
 							</a>
 						@endunless
@@ -53,14 +54,14 @@
 
 				<!-- Language Switcher -->
 				<a href="{{ request()->fullUrlWithQuery(['lang' => app()->getLocale() === 'es' ? 'en' : 'es']) }}"
-				   class="flex items-center bg-[#13082a] p-1 rounded-full border border-purple-500/40 shrink-0 shadow-inner hover:border-purple-400/70 transition-all duration-200 cursor-pointer"
+				   class="flex items-center bg-[#13082a] p-0.5 sm:p-1 rounded-full border border-purple-500/40 shrink-0 shadow-inner hover:border-purple-400/70 transition-all duration-200 cursor-pointer"
 				   title="{{ app()->getLocale() === 'es' ? __('messages.switch_to_english') : __('messages.switch_to_spanish') }}">
 					<span
-						class="px-3 py-1 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 {{ app()->getLocale() === 'es' ? 'bg-purple-600/60 text-white shadow-sm' : 'text-purple-300/50' }}">
+						class="px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 {{ app()->getLocale() === 'es' ? 'bg-purple-600/60 text-white shadow-sm' : 'text-purple-300/50' }}">
 						ES
 					</span>
 					<span
-						class="px-3 py-1 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 {{ app()->getLocale() === 'en' ? 'bg-purple-600/60 text-white shadow-sm' : 'text-purple-300/50' }}">
+						class="px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 {{ app()->getLocale() === 'en' ? 'bg-purple-600/60 text-white shadow-sm' : 'text-purple-300/50' }}">
 						EN
 					</span>
 				</a>

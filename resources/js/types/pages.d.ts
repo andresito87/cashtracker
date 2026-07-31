@@ -1,5 +1,6 @@
 import {Show} from '@/Pages/Budgets/Show'
 import {Dashboard} from '@/Pages/Dashboard'
+import {Manage} from '@/Pages/Subscriptions/Manage'
 
 /**
  * Inertia Page Registry
@@ -9,4 +10,5 @@ import {Dashboard} from '@/Pages/Dashboard'
 export interface InertiaPageRegistry {
 	'Budgets/Show': typeof Show
 	'Dashboard': typeof Dashboard
+	'Subscriptions/Manage': typeof Manage
 }
