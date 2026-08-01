@@ -108,6 +108,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/subscription/resume', [SubscriptionController::class, 'resume'])
         ->name('subscription.resume');
 
+    Route::get('/billing', [SubscriptionController::class, 'billing'])
+        ->name('billing');
+
     Route::get('/billing/success', [SubscriptionController::class, 'success'])->name('billing.success');
     Route::get('/billing/cancel', [SubscriptionController::class, 'cancelUrl'])->name('billing.cancel');
 

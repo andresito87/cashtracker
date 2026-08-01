@@ -262,6 +262,8 @@ return [
     'manage_subscription_subtitle' => 'Administra tu plan de CashTracker PRO, fechas de renovación y opciones de suscripción.',
     'billing_info' => 'Información de Facturación',
     'secure_stripe_notice' => 'Tus pagos y suscripciones son procesados de forma 100% segura mediante Stripe.',
+    'manage_billing_stripe' => 'Gestionar facturas y métodos de pago',
+    'manage_billing_stripe_desc' => 'Accede al portal seguro de Stripe para descargar facturas en PDF, cambiar tu tarjeta o actualizar datos fiscales.',
     'upgrade_yearly_title' => 'Upgrade a Anual y ahorra',
     'upgrade_yearly_desc' => 'Paga :yearlyPrice al año en lugar de :monthlyPriceTotal. ¡Ahorras :savings al año! — el equivalente a 4 meses gratis.',
     'upgrade_yearly_btn' => 'Upgrade a Anual',

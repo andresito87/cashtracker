@@ -291,6 +291,14 @@ class SubscriptionController extends Controller
     }
 
     /**
+     * Redirect to the Stripe Customer Billing Portal.
+     */
+    public function billing(Request $request): Response|RedirectResponse
+    {
+        return $request->user()->redirectToBillingPortal(route('subscription.manage'));
+    }
+
+    /**
      * Handle successful billing checkout redirect.
      */
     public function success(): RedirectResponse

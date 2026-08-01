@@ -1,9 +1,11 @@
 <?php
 
 use App\Enums\Currency;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Cashier\Subscription;
+use Mockery\MockInterface;
 
 test('guest cannot access plans page', function () {
     $response = $this->get(route('plans'));
@@ -161,4 +163,27 @@ test('user on grace period resuming and swapping plan calls resume and swap', fu
     $response->assertRedirect();
     expect($fakeSub->resumed)->toBeTrue()
         ->and($fakeSub->swappedTo)->not->toBeNull();
+});
+
+test('guest cannot access billing portal route', function () {
+    $response = $this->get(route('billing'));
+
+    $response->assertRedirect(route('login'));
+});
+
+test('authenticated user accessing billing portal calls redirectToBillingPortal', function () {
+    $user = actingAsVerifiedUser();
+
+    /** @var User|MockInterface $userMock */
+    $userMock = Mockery::mock($user)->makePartial();
+    $userMock->shouldReceive('redirectToBillingPortal')
+        ->once()
+        ->with(route('subscription.manage'))
+        ->andReturn(redirect('https://billing.stripe.com/session/test_123'));
+
+    $this->be($userMock);
+
+    $response = $this->get(route('billing'));
+
+    $response->assertRedirect('https://billing.stripe.com/session/test_123');
 });
