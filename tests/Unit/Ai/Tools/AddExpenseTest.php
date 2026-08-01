@@ -4,7 +4,7 @@ use App\Ai\Tools\AddExpense;
 use App\Enums\ExpenseCategory;
 use App\Models\Budget;
 use App\Models\Expense;
-use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\JsonSchema\JsonSchemaTypeFactory;
 use Laravel\Ai\Tools\Request;
 
 // ---------------------------------------------------------------------------
@@ -218,6 +218,26 @@ describe('AddExpense — business rules', function () {
 
         expect((string) $result)->toStartWith('[EXPENSE_CREATED]');
     });
+
+    it('ignores soft deleted expenses when calculating available balance', function () {
+        $user = createVerifiedUser();
+        $budget = Budget::factory()->for($user)->create(['amount' => 100]);
+
+        // Create and immediately soft-delete a 90 expense
+        $deleted = Expense::factory()->for($budget)->create(['amount' => 90]);
+        $deleted->delete();
+
+        $this->actingAs($user);
+
+        // Balance should be 100 since the deleted expense is excluded
+        $result = addExpenseTool($budget->id)->handle(makeRequest([
+            'name' => 'Supermercado',
+            'amount' => 90,
+        ]));
+
+        expect((string) $result)->toStartWith('[EXPENSE_CREATED]');
+        $this->assertDatabaseCount('expenses', 2); // soft-deleted + new one
+    });
 });
 
 // ---------------------------------------------------------------------------
@@ -268,13 +288,9 @@ describe('AddExpense — tool metadata', function () {
 
     it('schema contains the required name and amount fields and the optional category', function () {
         $tool = new AddExpense(budgetId: 1);
-        $schema = Mockery::mock(JsonSchema::class);
-        $schema->shouldReceive('string')->andReturnSelf();
-        $schema->shouldReceive('number')->andReturnSelf();
-        $schema->shouldReceive('description')->andReturnSelf();
-        $schema->shouldReceive('required')->andReturnSelf();
+        $factory = new JsonSchemaTypeFactory;
 
-        $definition = $tool->schema($schema);
+        $definition = $tool->schema($factory);
 
         expect($definition)->toHaveKey('name')
             ->toHaveKey('amount')

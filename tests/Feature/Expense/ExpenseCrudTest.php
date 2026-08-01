@@ -201,3 +201,43 @@ it('displays translated flash status messages when creating updating and deletin
         ->assertRedirect()
         ->assertSessionHas('status', __('messages.expense_created'));
 });
+
+it('releases budget balance when an expense is soft deleted allowing a new expense to use that balance', function () {
+    $user = createVerifiedUser();
+    $budget = Budget::factory()->for($user)->create(['amount' => 100]);
+
+    // Fill 90 of 100
+    $expense = Expense::factory()->for($budget)->create(['amount' => 90]);
+
+    // Only 10 left — adding 20 must fail
+    $this->actingAs($user)
+        ->post(route('budgets.expenses.store', $budget), [
+            'name' => 'Should Fail',
+            'amount' => 20,
+            'category' => 'food',
+        ])
+        ->assertSessionHasErrors(['amount']);
+
+    // Soft-delete the 90 expense
+    $this->actingAs($user)
+        ->delete(route('expenses.destroy', $expense))
+        ->assertRedirect();
+
+    $this->assertSoftDeleted($expense);
+
+    // Now 100 is available again — adding 90 must succeed
+    $this->actingAs($user)
+        ->post(route('budgets.expenses.store', $budget), [
+            'name' => 'Should Succeed',
+            'amount' => 90,
+            'category' => 'food',
+        ])
+        ->assertRedirect()
+        ->assertSessionMissing('errors');
+
+    $this->assertDatabaseHas('expenses', [
+        'budget_id' => $budget->id,
+        'name' => 'Should Succeed',
+        'deleted_at' => null,
+    ]);
+});

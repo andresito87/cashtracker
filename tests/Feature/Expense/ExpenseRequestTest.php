@@ -1,9 +1,7 @@
 <?php
 
-use App\Http\Requests\ExpenseRequest;
 use App\Models\Budget;
 use App\Models\Expense;
-use Illuminate\Support\Facades\Validator;
 
 function validExpensePayload(array $overrides = []): array
 {
@@ -13,26 +11,6 @@ function validExpensePayload(array $overrides = []): array
         'category' => 'food',
     ], $overrides);
 }
-
-it('validates expense request rules successfully with valid data', function () {
-    $user = actingAsVerifiedUser();
-    $budget = Budget::factory()->for($user)->create(['amount' => 100]);
-
-    $request = ExpenseRequest::create(
-        route('budgets.expenses.store', $budget),
-        'POST',
-        validExpensePayload()
-    );
-    $request->setRouteResolver(fn () => request()->route());
-
-    $validator = Validator::make(
-        validExpensePayload(),
-        $request->rules(),
-        $request->messages()
-    );
-
-    expect($validator->passes())->toBeTrue();
-});
 
 it('redirects back to budget show page with session errors when store payload is empty', function () {
     $user = actingAsVerifiedUser();

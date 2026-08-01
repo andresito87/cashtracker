@@ -22,8 +22,8 @@ class BudgetController extends Controller
 
         // Admins can view all budgets across the application, while regular users see only their own list.
         $budgets = $user->isAdmin()
-            ? Budget::latest()->get()
-            : $user->budgets()->latest()->get();
+            ? Budget::with('user')->latest()->get()
+            : $user->budgets()->with('user')->latest()->get();
 
         return Inertia::render('Dashboard', [
             'budgets' => $budgets->map(fn ($budget) => array_merge($budget->toArray(), [
@@ -72,9 +72,7 @@ class BudgetController extends Controller
 
         // Load the expenses relationship with the latest expenses first, so that the most recent expenses
         // are displayed at the top of the list. We can access the expenses via $budget->expenses in the view.
-        $budget->load(['expenses' => function ($query) {
-            $query->latest();
-        }]);
+        $budget->load(['expenses' => fn ($query) => $query->latest(), 'user']);
 
         return Inertia::render('Budgets/Show', [
             'budget' => array_merge($budget->toArray(), [

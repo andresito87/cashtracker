@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ExpenseCategory;
 use App\Models\Budget;
 use App\Models\Expense;
 
@@ -29,4 +30,10 @@ it('supports soft deletes', function () {
     $expense->restore();
 
     expect($expense->fresh()->deleted_at)->toBeNull();
+});
+
+it('returns the human-readable label for a known category', function () {
+    $expense = Expense::factory()->create(['category' => ExpenseCategory::Food]);
+
+    expect($expense->categoryLabel())->toBe(ExpenseCategory::Food->label());
 });

@@ -55,20 +55,38 @@ it('forbids a regular user from deleting another users budget and renders custom
     ]);
 });
 
-it('allows admins to bypass budget ownership policies', function () {
+it('allows an admin to view another users budget via HTTP', function () {
     $owner = createVerifiedUser();
     $admin = createAdminUser();
     $budget = Budget::factory()->for($owner)->create(['name' => 'Admin Accessible Budget']);
 
-    $this->actingAs($admin);
+    $this->actingAs($admin)
+        ->get(route('budgets.show', $budget))
+        ->assertSuccessful();
+});
 
-    expect(Gate::forUser($admin)->allows('view', $budget))->toBeTrue()
-        ->and(Gate::forUser($admin)->allows('update', $budget))->toBeTrue()
-        ->and(Gate::forUser($admin)->allows('delete', $budget))->toBeTrue();
+it('allows an admin to update another users budget via HTTP', function () {
+    $owner = createVerifiedUser();
+    $admin = createAdminUser();
+    $budget = Budget::factory()->for($owner)->create(['name' => 'Original Name']);
 
-    $this->get(route('budgets.show', $budget))
-        ->assertSuccessful()
-        ->assertSee('Admin Accessible Budget');
+    $this->actingAs($admin)
+        ->put(route('budgets.update', $budget), validBudgetPayload(['name' => 'Admin Updated']))
+        ->assertRedirect(route('budgets.show', $budget));
+
+    expect($budget->fresh()->name)->toBe('Admin Updated');
+});
+
+it('allows an admin to delete another users budget via HTTP', function () {
+    $owner = createVerifiedUser();
+    $admin = createAdminUser();
+    $budget = Budget::factory()->for($owner)->create();
+
+    $this->actingAs($admin)
+        ->delete(route('budgets.destroy', $budget))
+        ->assertRedirect(route('dashboard'));
+
+    $this->assertSoftDeleted($budget);
 });
 
 it('redirects guests away from budget routes', function () {

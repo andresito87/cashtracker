@@ -32,6 +32,8 @@ class ExpensePolicy
      */
     public function update(User $user, Expense $expense): Response
     {
+        $expense->loadMissing('budget');
+
         return $user->id === $expense->budget->user_id || $user->isAdmin()
             ? Response::allow()
             : Response::deny(__('messages.error_403_subtitle'));
@@ -42,6 +44,8 @@ class ExpensePolicy
      */
     public function delete(User $user, Expense $expense): Response
     {
+        $expense->loadMissing('budget');
+
         return $user->id === $expense->budget->user_id || $user->isAdmin()
             ? Response::allow()
             : Response::deny(__('messages.error_403_subtitle'));

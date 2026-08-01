@@ -13,8 +13,6 @@ class BudgetChatController extends Controller
     {
         Gate::authorize('view', $budget);
 
-        set_time_limit(120);
-
         $messages = $request->input('messages', []);
         $lastMessages = collect($messages)->last();
         $prompt = collect(data_get($lastMessages, 'parts', []))
@@ -23,6 +21,10 @@ class BudgetChatController extends Controller
             ->implode(' ')
 			?: data_get($lastMessages, 'content', '');
 
+        if (blank($prompt)) {
+            return response()->json(['error' => 'Empty prompt.'], 422);
+        }
+
         $agent = app(BudgetAssistant::class);
         $agent->budgetId = $budget->id;
         $formattedBudgetAmount = $budget->formattedAmount();
@@ -30,13 +32,8 @@ class BudgetChatController extends Controller
 
         return $agent->stream(
             $prompt,
-            provider: 'openrouter',
-            model: 'openrouter/free', // Auto-router oficial de OpenRouter (selecciona dinámicamente el mejor gratuito con tools)
-            // model: 'inclusionai/ling-3.0-flash:free', // Ling 3.0 Flash 124B (MoE optimizado para agentes)
-            // model: 'poolside/laguna-s-2.1:free', // Laguna S 2.1 118B (Modelo de agentes de código de Poolside)
-            // model: 'qwen/qwen-2.5-coder-32b-instruct:free', // Qwen 2.5 Coder 32B (Especializado en código y tools)
-            // model: 'meta-llama/llama-3.1-8b-instruct:free', // Llama 3.1 8B Instruct (Gratuito con tools)
+            provider: config('ai.chat.provider', 'openrouter'),
+            model: config('ai.chat.model', 'openrouter/free'),
         )->usingVercelDataProtocol();
-
     }
 }

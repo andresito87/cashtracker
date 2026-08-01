@@ -30,7 +30,7 @@ class BudgetPolicy
      */
     public function view(User $user, Budget $budget): Response
     {
-        return $user->id === $budget->user_id
+        return $user->id === $budget->user_id || $user->isAdmin()
             ? Response::allow()
             : Response::deny(__('messages.error_403_subtitle'));
     }
@@ -50,7 +50,7 @@ class BudgetPolicy
      */
     public function update(User $user, Budget $budget): Response
     {
-        return $user->id === $budget->user_id
+        return $user->id === $budget->user_id || $user->isAdmin()
             ? Response::allow()
             : Response::deny(__('messages.error_403_subtitle'));
     }
@@ -60,7 +60,7 @@ class BudgetPolicy
      */
     public function delete(User $user, Budget $budget): Response
     {
-        return $user->id === $budget->user_id
+        return $user->id === $budget->user_id || $user->isAdmin()
             ? Response::allow()
             : Response::deny(__('messages.error_403_subtitle'));
     }

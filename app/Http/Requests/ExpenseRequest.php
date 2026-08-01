@@ -39,6 +39,7 @@ class ExpenseRequest extends FormRequest
                 'numeric',
                 'decimal:0,2',
                 'min:0.01',
+                'max:99999999.99',
                 function (string $attribute, mixed $value, Closure $fail) use ($budget, $editingExpense) {
                     if (! $budget || ! is_numeric($value)) {
                         return;

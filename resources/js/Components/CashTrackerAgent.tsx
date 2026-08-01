@@ -29,8 +29,9 @@ export const CashTrackerAgent = ({budgetId}: Props) => {
 				return isAddExpenseTool && finished;
 			});
 
-			const hasTag = (message as any).content?.includes('[EXPENSE_CREATED]') ||
-				message.parts?.some((p: any) => p.text?.includes('[EXPENSE_CREATED]'));
+			const hasTag = message.parts?.some(
+				(p) => 'text' in p && typeof p.text === 'string' && p.text.includes('[EXPENSE_CREATED]')
+			);
 
 			if (expenseCreated || hasTag) {
 				toast.custom((tToast) => (
@@ -65,7 +66,9 @@ export const CashTrackerAgent = ({budgetId}: Props) => {
 	const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		if (input.trim() && !isProcessing) {
-			sendMessage({text: input.trim()}).then();
+			sendMessage({text: input.trim()}).catch((error: unknown) => {
+				console.error('[CashTrackerAgent] Failed to send message:', error)
+			});
 			setInput('');
 		}
 	};

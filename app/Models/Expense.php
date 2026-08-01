@@ -52,7 +52,7 @@ class Expense extends Model
      */
     public function categoryLabel(): string
     {
-        return $this->category?->label() ?? 'Gastos Varios';
+        return $this->category?->label() ?? __('messages.category_other_label');
     }
 
     /**

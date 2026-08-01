@@ -6,13 +6,17 @@ use App\Ai\Agents\TicketScanner;
 use App\Enums\Currency;
 use App\Enums\ExpenseCategory;
 use App\Models\Budget;
-use App\Models\Expense;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Laravel\Ai\Files;
+use Throwable;
 
 class TicketScanController extends Controller
 {
+    /**
+     * @throws Throwable
+     */
     public function store(Request $request, Budget $budget)
     {
         Gate::authorize('update', $budget);
@@ -21,6 +25,7 @@ class TicketScanController extends Controller
             'image' => 'required|image|max:2048', // Validate that the uploaded file is an image and not larger than 2MB
         ]);
 
+        $budget->loadMissing('user');
         $userCurrency = $budget->user?->currency ?? auth()->user()?->currency ?? Currency::EUR;
 
         $scanner = app(TicketScanner::class);
@@ -72,34 +77,37 @@ class TicketScanController extends Controller
         );
     }
 
+    /**
+     * Create expenses from ticket scan results
+     *
+     * @throws Throwable
+     */
     private function createExpenses(Budget $budget, string $store, string $category, array $items): array
     {
         $symbol = $budget->user?->currency?->symbol() ?? auth()->user()?->currency?->symbol() ?? '€';
         $categoryEnum = ExpenseCategory::tryFrom($category) ?? ExpenseCategory::Other;
         $catLabel = $categoryEnum->label();
-        $created = [];
 
-        foreach ($items as $item) {
-            $name = $store.' - '.$item['name'];
-            $amount = number_format((float) $item['amount'], 2);
+        $rows = array_map(fn ($item) => [
+            'name' => $store.' - '.$item['name'],
+            'amount' => $item['amount'],
+            'category' => $categoryEnum->value,
+        ], $items);
 
-            Expense::create([
-                'budget_id' => $budget->id,
-                'name' => $name,
-                'amount' => $item['amount'],
-                'category' => $category,
-            ]);
+        DB::transaction(fn () => $budget->expenses()->createMany($rows));
 
-            $created[] = "- $name: $symbol$amount ($catLabel)";
-        }
+        $created = array_map(
+            fn ($row) => '- '.$row['name'].': '.$symbol.number_format((float) $row['amount'], 2).' ('.$catLabel.')',
+            $rows
+        );
 
-        $total = array_sum(array_column($items, 'amount'));
+        $total = number_format((float) array_sum(array_column($items, 'amount')), 2);
 
         return [
             'success' => true,
             'message' => 'Se registraron '.count($created)." gastos del ticket:\n".
-            	implode("\n", $created).
-            	"\nTotal: $symbol$total",
+                implode("\n", $created).
+                "\nTotal: $symbol$total",
         ];
     }
 }

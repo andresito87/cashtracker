@@ -1,10 +1,11 @@
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import {usePage} from '@inertiajs/react'
 import {useTranslation} from '@/hooks/useTranslation'
 import {formatDate} from '@/utils/formatDate'
 import {SharedData, Subscription} from '@/types'
 import {SubscriptionUpgrade} from './SubscriptionUpgrade'
 import {SubscriptionDowngrade} from './SubscriptionDowngrade'
+import {ConfirmModal} from '@/Components/ConfirmModal'
 
 export interface SubscriptionStatusProps {
 	subscription?: Subscription | null
@@ -23,6 +24,8 @@ export const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
 																	  }) => {
 	const {auth} = usePage<SharedData>().props
 	const {t, locale} = useTranslation()
+	const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
+	const [isSwapModalOpen, setIsSwapModalOpen] = useState(false)
 
 	const currentPlan = auth?.user?.plan || subscription?.plan
 	const symbol = auth?.user?.currency_symbol || '€'
@@ -35,6 +38,31 @@ export const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
 	const statusLabel = subscription?.status_label
 	const rawDate = statusLabel?.date || subscription?.next_billing_date || subscription?.ends_at || auth?.user?.ends_at
 	const formattedDate = rawDate ? formatDate(rawDate, locale) : ''
+
+	useEffect(() => {
+		if (isOnGracePeriod) {
+			setIsCancelModalOpen(false)
+		}
+	}, [isOnGracePeriod])
+
+	useEffect(() => {
+		if (currentPlan === 'yearly') {
+			setIsSwapModalOpen(false)
+		}
+	}, [currentPlan])
+
+	const handleRequestSwap = () => {
+		if (onSwap && loadingAction === undefined) {
+			setIsSwapModalOpen(true)
+		}
+	}
+
+	const handleConfirmSwap = () => {
+		setIsSwapModalOpen(false)
+		if (onSwap) {
+			onSwap('yearly')
+		}
+	}
 
 	const getDotColorClass = () => {
 		switch (statusLabel?.color) {
@@ -90,7 +118,7 @@ export const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
 						) : (
 							onCancel && (
 								<button
-									onClick={onCancel}
+									onClick={() => setIsCancelModalOpen(true)}
 									disabled={loadingAction !== undefined}
 									className="px-5 py-2.5 rounded-xl bg-gray-100 hover:bg-red-50 text-gray-700 hover:text-red-600 font-semibold text-sm transition-all border border-gray-200 cursor-pointer disabled:opacity-50"
 								>
@@ -133,19 +161,33 @@ export const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
 
 						{/* Yearly Option */}
 						<div
+							onClick={() => {
+								if (currentPlan === 'monthly') {
+									handleRequestSwap()
+								}
+							}}
 							className={`rounded-xl p-5 border transition-all ${
 								currentPlan === 'yearly'
 									? 'border-2 border-purple-900 bg-purple-900/5'
-									: 'border-gray-200 bg-slate-50/50'
+									: currentPlan === 'monthly'
+										? 'border-gray-200 bg-slate-50/50 hover:border-orange-500 hover:bg-orange-50/30 cursor-pointer shadow-2xs hover:shadow-md'
+										: 'border-gray-200 bg-slate-50/50'
 							}`}
 						>
 							<div className="flex justify-between items-center mb-2">
 								<h4 className="font-bold text-gray-900">{t('plan_yearly')}</h4>
-								{currentPlan === 'yearly' && (
+								{currentPlan === 'yearly' ? (
 									<span
 										className="bg-purple-900 text-white text-xs font-extrabold px-2.5 py-0.5 rounded-full uppercase">
                                         {t('status_active')}
                                     </span>
+								) : (
+									currentPlan === 'monthly' && (
+										<span
+											className="bg-orange-500/10 text-orange-600 border border-orange-500/20 text-xs font-extrabold px-2.5 py-0.5 rounded-full uppercase">
+											{loadingAction === 'swap_yearly' ? t('loading') : t('upgrade_yearly_btn')}
+										</span>
+									)
 								)}
 							</div>
 							<p className="text-2xl font-extrabold text-gray-900">
@@ -160,8 +202,8 @@ export const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
 			</div>
 
 			{/* Upgrade or Downgrade Information Section */}
-			{currentPlan === 'monthly' && !isOnGracePeriod && (
-				<SubscriptionUpgrade onSwap={onSwap} loadingAction={loadingAction}/>
+			{currentPlan === 'monthly' && (
+				<SubscriptionUpgrade onSwap={handleRequestSwap} loadingAction={loadingAction}/>
 			)}
 
 			{currentPlan === 'yearly' && (
@@ -186,7 +228,41 @@ export const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
 					<p className="text-xs text-gray-500 mt-0.5">{t('secure_stripe_notice')}</p>
 				</div>
 			</div>
+
+			{/* Confirmation Modal for Subscription Cancellation */}
+			<ConfirmModal
+				isOpen={isCancelModalOpen}
+				title={t('confirm_cancel_subscription_title')}
+				message={t('confirm_cancel_subscription_message')}
+				confirmText={t('confirm_cancel_subscription_btn')}
+				cancelText={t('cancel')}
+				processingText={t('canceling_subscription')}
+				isProcessing={loadingAction === 'cancel'}
+				variant="danger"
+				onClose={() => setIsCancelModalOpen(false)}
+				onConfirm={() => {
+					setIsCancelModalOpen(false)
+					if (onCancel) {
+						onCancel()
+					}
+				}}
+			/>
+
+			{/* Confirmation Modal for Subscription Swap to Yearly */}
+			<ConfirmModal
+				isOpen={isSwapModalOpen}
+				title={t('confirm_swap_yearly_title')}
+				message={t('confirm_swap_yearly_message', {price: yearlyPrice})}
+				confirmText={t('confirm_swap_yearly_btn')}
+				cancelText={t('cancel')}
+				processingText={t('swapping_plan')}
+				isProcessing={loadingAction === 'swap_yearly'}
+				variant="warning"
+				onClose={() => setIsSwapModalOpen(false)}
+				onConfirm={handleConfirmSwap}
+			/>
 		</div>
 	)
 }
+
 

@@ -108,6 +108,10 @@ class SubscriptionController extends Controller
 
             $currentSub = $user->subscription();
             if ($currentSub) {
+                if ($currentSub->onGracePeriod()) {
+                    $currentSub->resume();
+                }
+
                 $currentSub->swap($priceId);
                 cache()->forget("stripe.next_billing.{$currentSub->getKey()}");
             }

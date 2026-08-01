@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+import React from 'react'
 import {createInertiaApp} from '@inertiajs/react'
 import {createRoot} from 'react-dom/client'
 import {ToastContainer} from '@/Components/ToastContainer'
@@ -10,11 +11,13 @@ createInertiaApp({
 		color: '#9333ea',
 		showSpinner: false,
 	},
-	resolve: name => {
-		const pages = import.meta.glob('./Pages/**/*.tsx', {eager: true})
-		const module: any = pages[`./Pages/${name}.tsx`]
+	resolve: async name => {
+		const pages = import.meta.glob('./Pages/**/*.tsx')
+		const resolver = pages[`./Pages/${name}.tsx`]
+		if (!resolver) throw new Error(`Page not found: ${name}`)
+		const module = await resolver() as Record<string, unknown>
 		const componentName = name.split('/').pop()!
-		return module.default || module[componentName]
+		return (module.default ?? module[componentName]) as React.ComponentType
 	},
 	setup({el, App, props}) {
 		createRoot(el).render(

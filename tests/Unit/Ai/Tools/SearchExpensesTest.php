@@ -4,7 +4,7 @@ use App\Ai\Tools\SearchExpenses;
 use App\Enums\ExpenseCategory;
 use App\Models\Budget;
 use App\Models\Expense;
-use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\JsonSchema\JsonSchemaTypeFactory;
 use Illuminate\Support\Carbon;
 use Laravel\Ai\Tools\Request;
 
@@ -289,11 +289,9 @@ describe('SearchExpenses — tool metadata', function () {
 
     it('schema contains name, category, and sort_by fields', function () {
         $tool = new SearchExpenses(budgetId: 1);
-        $schema = Mockery::mock(JsonSchema::class);
-        $schema->shouldReceive('string')->andReturnSelf();
-        $schema->shouldReceive('description')->andReturnSelf();
+        $factory = new JsonSchemaTypeFactory;
 
-        $definition = $tool->schema($schema);
+        $definition = $tool->schema($factory);
 
         expect($definition)
             ->toHaveKey('name')

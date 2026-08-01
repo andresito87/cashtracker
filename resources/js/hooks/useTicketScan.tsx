@@ -3,10 +3,11 @@ import {router} from '@inertiajs/react';
 import {useTranslation} from '@/hooks/useTranslation';
 import {Toast} from '@/Components/Toast';
 import toast from 'react-hot-toast';
+import {route} from 'ziggy-js'
 
 type UseTicketScanOptions = {
 	budgetId: number;
-	setMessages: React.Dispatch<React.SetStateAction<any[]>>;
+	setMessages: (updater: (prev: any[]) => any[]) => void;
 };
 
 export const useTicketScan = ({budgetId, setMessages}: UseTicketScanOptions) => {
@@ -61,7 +62,7 @@ export const useTicketScan = ({budgetId, setMessages}: UseTicketScanOptions) => 
 			const formData = new FormData();
 			formData.append('image', file);
 
-			const response = await fetch(`/budgets/${budgetId}/scan-ticket`, {
+			const response = await fetch(route('budgets.scan-ticket', {budget: budgetId}), {
 				method: 'POST',
 				headers: {
 					'X-CSRF-TOKEN': csrfToken,

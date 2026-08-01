@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useMemo} from 'react'
 import {Dialog, DialogBackdrop, DialogPanel, DialogTitle} from '@headlessui/react'
 import {usePage} from '@inertiajs/react'
 import {SharedData} from '@/types'
@@ -15,12 +15,18 @@ export const ExpenseModal = () => {
 	const currencySymbol = budget?.currency_symbol || auth?.user?.currency_symbol || '€'
 	const formatCurrencyVal = (val: number | string) => formatCurrency(val, currencySymbol, locale)
 
-	const totalSpent = (budget?.expenses || []).reduce(
-		(sum, exp) => sum + parseFloat(exp.amount || '0'),
-		0
-	)
-	const budgetAmount = parseFloat(budget?.amount || '0')
-	const remaining = budgetAmount - totalSpent
+	const {totalSpent, budgetAmount, remaining} = useMemo(() => {
+		const spent = (budget?.expenses || []).reduce(
+			(sum, exp) => sum + parseFloat(exp.amount || '0'),
+			0
+		)
+		const amount = parseFloat(budget?.amount || '0')
+		return {
+			totalSpent: spent,
+			budgetAmount: amount,
+			remaining: amount - spent,
+		}
+	}, [budget?.expenses, budget?.amount])
 
 	return (
 		<Dialog open={isOpen} onClose={closeModal} className="relative z-50">

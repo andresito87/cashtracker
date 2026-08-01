@@ -7,6 +7,8 @@ use App\Models\Budget;
 use App\Models\Expense;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Ai\Approvals\Decisions;
+use Laravel\Ai\Enums\Lab;
 use Laravel\Ai\Responses\Data\Meta;
 use Laravel\Ai\Responses\Data\Usage;
 use Laravel\Ai\Responses\StructuredAgentResponse;
@@ -34,12 +36,25 @@ function mockTicketScanner(array $scannerResult): void
         new Meta
     );
 
-    $mockScanner = Mockery::mock(TicketScanner::class);
-    $mockScanner->shouldReceive('prompt')
-        ->once()
-        ->andReturn($response);
+    $fakeScanner = new class($response) extends TicketScanner
+    {
+        public function __construct(public StructuredAgentResponse $cResponse)
+        {
+            parent::__construct();
+        }
 
-    app()->instance(TicketScanner::class, $mockScanner);
+        public function prompt(
+            Decisions|string $prompt,
+            array $attachments = [],
+            Lab|array|string|null $provider = null,
+            ?string $model = null,
+            ?int $timeout = null
+        ): StructuredAgentResponse {
+            return $this->cResponse;
+        }
+    };
+
+    app()->instance(TicketScanner::class, $fakeScanner);
 }
 
 // ---------------------------------------------------------------------------
@@ -69,7 +84,7 @@ describe('TicketScanController — Happy Path', function () {
         ]);
 
         $catLabel = ExpenseCategory::Food->label();
-        $expectedMessage = "Se registraron 2 gastos del ticket:\n- Supermercado Dia - Leche Entera: €3.50 ($catLabel)\n- Supermercado Dia - Pan Integral: €2.00 ($catLabel)\nTotal: €5.5";
+        $expectedMessage = "Se registraron 2 gastos del ticket:\n- Supermercado Dia - Leche Entera: €3.50 ($catLabel)\n- Supermercado Dia - Pan Integral: €2.00 ($catLabel)\nTotal: €5.50";
 
         $response->assertOk()
             ->assertJsonPath('success', true)
@@ -227,12 +242,27 @@ describe('TicketScanController — Error & Edge Cases', function () {
             ->assertForbidden();
     });
 
-    it('requires authentication to scan tickets', function () {
-        $budget = Budget::factory()->create();
-        $file = UploadedFile::fake()->image('ticket.jpg');
+    it('rejects a PDF file with a validation error on the image field', function () {
+        $user = actingAsVerifiedUser();
+        $budget = Budget::factory()->for($user)->create();
 
-        $this->postJson(route('budgets.scan-ticket', $budget), [
-            'image' => $file,
-        ])->assertRedirect(route('login'));
+        $pdfFile = UploadedFile::fake()->create('receipt.pdf', 100, 'application/pdf');
+
+        $this->from(route('budgets.show', $budget))
+            ->post(route('budgets.scan-ticket', $budget), ['image' => $pdfFile])
+            ->assertRedirect(route('budgets.show', $budget))
+            ->assertSessionHasErrors(['image']);
+    });
+
+    it('rejects a plain text file with a validation error on the image field', function () {
+        $user = actingAsVerifiedUser();
+        $budget = Budget::factory()->for($user)->create();
+
+        $txtFile = UploadedFile::fake()->create('notes.txt', 1, 'text/plain');
+
+        $this->from(route('budgets.show', $budget))
+            ->post(route('budgets.scan-ticket', $budget), ['image' => $txtFile])
+            ->assertRedirect(route('budgets.show', $budget))
+            ->assertSessionHasErrors(['image']);
     });
 });

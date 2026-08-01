@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Currency;
+use Illuminate\Database\Eloquent\Collection;
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Cashier\Subscription;
 
@@ -103,14 +104,61 @@ test('user resuming non-existent subscription handles gracefully', function () {
 test('user on yearly plan cannot swap directly to monthly plan', function () {
     $user = actingAsVerifiedUser();
 
-    // Create subscription mock
-    Mockery::mock(Subscription::class);
+    $user->subscriptions()->forceCreate([
+        'type' => 'default',
+        'stripe_id' => 'sub_yearly_test',
+        'stripe_status' => 'active',
+        'stripe_price' => config('services.stripe.price_ai_yearly') ?? 'price_yearly',
+    ]);
 
-    $userMock = Mockery::mock($user)->makePartial();
-    $userMock->shouldReceive('subscribed')->andReturn(true);
-    $userMock->shouldReceive('isYearlySubscribed')->andReturn(true);
-
-    $response = $this->actingAs($userMock)->post(route('subscription.swap', ['plan' => 'monthly']));
+    $response = $this->post(route('subscription.swap', ['plan' => 'monthly']));
 
     $response->assertSessionHas('error');
+});
+
+test('user on grace period resuming and swapping plan calls resume and swap', function () {
+    $user = actingAsVerifiedUser();
+
+    $fakeSub = new class extends Subscription
+    {
+        public bool $resumed = false;
+
+        public ?string $swappedTo = null;
+
+        public function onGracePeriod(): bool
+        {
+            return true;
+        }
+
+        public function resume(): static
+        {
+            $this->resumed = true;
+
+            return $this;
+        }
+
+        public function swap($prices, array $options = []): static
+        {
+            $this->swappedTo = is_array($prices) ? json_encode($prices) : (string) $prices;
+
+            return $this;
+        }
+
+        public function getKey(): int
+        {
+            return 1;
+        }
+    };
+    $fakeSub->forceFill([
+        'type' => 'default',
+        'stripe_status' => 'active',
+    ]);
+
+    $user->setRelation('subscriptions', new Collection([$fakeSub]));
+
+    $response = $this->actingAs($user)->post(route('subscription.swap', ['plan' => 'yearly']));
+
+    $response->assertRedirect();
+    expect($fakeSub->resumed)->toBeTrue()
+        ->and($fakeSub->swappedTo)->not->toBeNull();
 });

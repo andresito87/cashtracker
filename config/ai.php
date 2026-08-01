@@ -22,6 +22,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Chat Agent Defaults
+    |--------------------------------------------------------------------------
+    |
+    | Provider and model used by BudgetChatController. Override via .env to
+    | swap models without touching source code.
+    |
+    */
+
+    'chat' => [
+        'provider' => env('AI_CHAT_PROVIDER', 'openrouter'),
+        'model' => env('AI_CHAT_MODEL', 'openrouter/free'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Caching
     |--------------------------------------------------------------------------
     |

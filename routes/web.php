@@ -87,8 +87,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
     Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
 
-    Route::post('/budgets/{budget}/chat', [BudgetChatController::class, 'store'])->name('budgets.chat');
-    Route::post('/budgets/{budget}/scan-ticket', [TicketScanController::class, 'store'])->name('budgets.scan-ticket');
+    Route::post('/budgets/{budget}/chat', [BudgetChatController::class, 'store'])
+        ->middleware('throttle:20,1')
+        ->name('budgets.chat');
+    Route::post('/budgets/{budget}/scan-ticket', [TicketScanController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('budgets.scan-ticket');
 
     Route::post('/subscription-checkout/{plan}',
         [SubscriptionController::class, 'checkout'])->name('subscription.checkout');

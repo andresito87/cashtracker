@@ -2,7 +2,7 @@
 
 use App\Ai\Agents\TicketScanner;
 use App\Enums\Currency;
-use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\JsonSchema\JsonSchemaTypeFactory;
 
 describe('TicketScanner Agent Unit Tests', function () {
     it('initializes with default EUR currency when no currency is passed', function () {
@@ -43,29 +43,9 @@ describe('TicketScanner Agent Unit Tests', function () {
 
     it('returns structured JSON schema containing store, category, and items', function () {
         $agent = new TicketScanner;
-        $mockSchema = Mockery::mock(JsonSchema::class);
+        $factory = new JsonSchemaTypeFactory;
 
-        // Chain schema fluid builder methods
-        $stringSchema = Mockery::mock(JsonSchema::class);
-        $stringSchema->shouldReceive('description')->andReturnSelf();
-        $stringSchema->shouldReceive('enum')->andReturnSelf();
-
-        $numberSchema = Mockery::mock(JsonSchema::class);
-        $numberSchema->shouldReceive('description')->andReturnSelf();
-
-        $objectSchema = Mockery::mock(JsonSchema::class);
-        $objectSchema->shouldReceive('required')->andReturnSelf();
-
-        $arraySchema = Mockery::mock(JsonSchema::class);
-        $arraySchema->shouldReceive('items')->andReturnSelf();
-        $arraySchema->shouldReceive('description')->andReturnSelf();
-
-        $mockSchema->shouldReceive('string')->andReturn($stringSchema);
-        $mockSchema->shouldReceive('number')->andReturn($numberSchema);
-        $mockSchema->shouldReceive('object')->andReturn($objectSchema);
-        $mockSchema->shouldReceive('array')->andReturn($arraySchema);
-
-        $schema = $agent->schema($mockSchema);
+        $schema = $agent->schema($factory);
 
         expect($schema)->toHaveKeys(['store', 'category', 'items']);
     });

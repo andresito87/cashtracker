@@ -30,7 +30,7 @@ class BudgetRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'amount' => ['required', 'numeric', 'decimal:0,2', 'min:0.01'],
+            'amount' => ['required', 'numeric', 'decimal:0,2', 'min:0.01', 'max:99999999.99'],
             'type' => ['required', Rule::enum(BudgetType::class)],
             'description' => ['nullable', 'string', 'max:1000'],
         ];

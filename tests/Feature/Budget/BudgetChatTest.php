@@ -3,8 +3,9 @@
 use App\Ai\Agents\BudgetAssistant;
 use App\Enums\BudgetType;
 use App\Models\Budget;
+use Laravel\Ai\Approvals\Decisions;
+use Laravel\Ai\Enums\Lab;
 use Laravel\Ai\Responses\StreamableAgentResponse;
-use Symfony\Component\HttpFoundation\Response;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -12,27 +13,36 @@ use Symfony\Component\HttpFoundation\Response;
 
 function fakeStreamableResponse(): StreamableAgentResponse
 {
-    $streamable = Mockery::mock(StreamableAgentResponse::class);
-    $streamable->shouldReceive('usingVercelDataProtocol')->andReturnSelf();
-    $streamable->shouldReceive('toResponse')->andReturn(
-        new Response('', 200)
-    );
-
-    return $streamable;
+    return new StreamableAgentResponse('fake-id', function () {
+        yield from [];
+    })->usingVercelDataProtocol();
 }
 
 function fakeBudgetAssistant(?string &$capturedPrompt = null, ?BudgetAssistant &$capturedAgent = null): BudgetAssistant
 {
-    $fake = Mockery::mock(BudgetAssistant::class)->makePartial();
+    $fake = new class($capturedPrompt) extends BudgetAssistant
+    {
+        public function __construct(public &$promptRef)
+        {
+            if (method_exists(parent::class, '__construct')) {
+                parent::__construct();
+            }
+        }
 
-    $fake->shouldReceive('stream')
-        ->once()
-        ->andReturnUsing(function (string $prompt) use (&$capturedPrompt, $fake, &$capturedAgent) {
-            $capturedPrompt = $prompt;
-            $capturedAgent = $fake;
+        public function stream(
+            Decisions|string $prompt,
+            array $attachments = [],
+            Lab|array|string|null $provider = null,
+            ?string $model = null,
+            ?int $timeout = null
+        ): StreamableAgentResponse {
+            $this->promptRef = (string) $prompt;
 
             return fakeStreamableResponse();
-        });
+        }
+    };
+
+    $capturedAgent = $fake;
 
     return $fake;
 }
@@ -116,7 +126,7 @@ describe('BudgetChatController — happy path', function () {
 
         $this->instance(BudgetAssistant::class, fakeBudgetAssistant());
 
-        $this->post(route('budgets.chat', $budget))->assertOk();
+        $this->post(route('budgets.chat', $budget))->assertStatus(422);
     });
 });
 
@@ -152,5 +162,26 @@ describe('BudgetChatController — authorization', function () {
         $this->post(route('budgets.chat', $budget), [
             'messages' => [['content' => 'quiero ver tus gastos']],
         ])->assertForbidden();
+    });
+});
+
+describe('BudgetChatController — input validation', function () {
+    it('returns 422 when the messages payload is empty and no prompt can be extracted', function () {
+        $user = actingAsVerifiedUser();
+        $budget = Budget::factory()->for($user)->create();
+
+        // No agent mock needed — guard fires before agent is called
+        $this->postJson(route('budgets.chat', $budget), [
+            'messages' => [],
+        ])->assertStatus(422);
+    });
+
+    it('returns 422 when the last message has empty text parts', function () {
+        $user = actingAsVerifiedUser();
+        $budget = Budget::factory()->for($user)->create();
+
+        $this->postJson(route('budgets.chat', $budget), [
+            'messages' => [['parts' => [['type' => 'text', 'text' => '   ']]]],
+        ])->assertStatus(422);
     });
 });

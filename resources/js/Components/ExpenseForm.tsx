@@ -33,7 +33,8 @@ export const ExpenseForm = ({onSuccess, onCancel}: ExpenseFormProps) => {
 			reset()
 			clearErrors()
 		}
-	}, [editingExpense])
+		// setData, clearErrors, reset are stable refs from useForm — safe to include
+	}, [editingExpense, setData, clearErrors, reset])
 
 	const handleCancel = () => {
 		reset()

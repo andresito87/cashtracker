@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
 use Throwable;
 
@@ -46,13 +47,21 @@ class HandleInertiaRequests extends Middleware
             if ($subscription->ends_at) {
                 $nextBillingDate = $subscription->ends_at->format('Y-m-d');
             } else {
-                try {
-                    $periodEnd = $subscription->asStripeSubscription()->current_period_end;
-                    $nextBillingDate = Carbon::createFromTimestamp($periodEnd)->format('Y-m-d');
-                } catch (Throwable) {
-                    $isYearly = $user->isYearlySubscribed();
-                    $nextBillingDate = ($subscription->created_at ?? now())->{$isYearly ? 'addYear' : 'addMonth'}()->format('Y-m-d');
-                }
+                $nextBillingDate = Cache::remember(
+                    "next_billing_date.$user->id",
+                    now()->addHour(),
+                    function () use ($subscription, $user) {
+                        try {
+                            $periodEnd = $subscription->asStripeSubscription()->current_period_end;
+
+                            return Carbon::createFromTimestamp($periodEnd)->format('Y-m-d');
+                        } catch (Throwable) {
+                            $isYearly = $user->isYearlySubscribed();
+
+                            return ($subscription->created_at ?? now())->{$isYearly ? 'addYear' : 'addMonth'}()->format('Y-m-d');
+                        }
+                    }
+                );
             }
         }
 
