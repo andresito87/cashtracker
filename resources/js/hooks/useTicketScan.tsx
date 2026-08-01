@@ -1,7 +1,7 @@
 import React, {useRef, useState} from 'react';
 import {router} from '@inertiajs/react';
 import {useTranslation} from '@/hooks/useTranslation';
-import {Toast} from '@/Components/Toast';
+import {Toast} from '@/Components/toast';
 import toast from 'react-hot-toast';
 import {route} from 'ziggy-js'
 

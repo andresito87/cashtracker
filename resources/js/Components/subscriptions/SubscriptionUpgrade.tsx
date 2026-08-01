@@ -2,25 +2,24 @@ import React from 'react'
 import {usePage} from '@inertiajs/react'
 import {useTranslation} from '@/hooks/useTranslation'
 import {SharedData} from '@/types'
+import {getPlanPrices} from '@/config/subscriptionPrices'
 
 interface SubscriptionUpgradeProps {
 	onSwap?: (plan: 'monthly' | 'yearly') => void
 	loadingAction?: string
 }
 
-export const SubscriptionUpgrade: React.FC<SubscriptionUpgradeProps> = ({
-																			onSwap,
-																			loadingAction,
-																		}) => {
+export const SubscriptionUpgrade = ({
+										onSwap,
+										loadingAction,
+									}: SubscriptionUpgradeProps) => {
 	const {auth} = usePage<SharedData>().props
 	const {t} = useTranslation()
 
-	const symbol = auth?.user?.currency_symbol || '€'
-	const isUSD = auth?.user?.currency === 'USD'
-
-	const yearlyPrice = isUSD ? '$299' : `299${symbol}`
-	const monthlyPriceTotal = isUSD ? '$468' : `468${symbol}`
-	const savings = isUSD ? '$169' : `169${symbol}`
+	const {yearlyPrice, monthlyPriceTotal, savings} = getPlanPrices(
+		auth?.user?.currency,
+		auth?.user?.currency_symbol
+	)
 
 	return (
 		<div className="rounded-2xl bg-[#1b0e35] p-6 sm:p-8 text-white shadow-sm border border-purple-900/30">

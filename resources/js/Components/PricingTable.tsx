@@ -4,12 +4,13 @@ import {useTranslation} from '@/hooks/useTranslation'
 import {useSubscriptionActions} from '@/hooks/useSubscriptionActions'
 import {formatDate} from '@/utils/formatDate'
 import {SharedData, Subscription} from '@/types'
+import {getPlanPrices} from '@/config/subscriptionPrices'
 
 interface PricingTableProps {
 	subscription?: Subscription | null
 }
 
-export const PricingTable: React.FC<PricingTableProps> = ({subscription}) => {
+export const PricingTable = ({subscription}: PricingTableProps) => {
 	const {auth} = usePage<SharedData>().props
 	const {t, locale} = useTranslation()
 	const {
@@ -22,15 +23,14 @@ export const PricingTable: React.FC<PricingTableProps> = ({subscription}) => {
 
 	const isSubscribed = auth?.user?.subscribed ?? false
 	const currentPlan = auth?.user?.plan
-	const symbol = auth?.user?.currency_symbol || '€'
-	const isUSD = auth?.user?.currency === 'USD'
 
 	const rawEndsAt = subscription?.ends_at || auth?.user?.ends_at
 	const formattedDate = rawEndsAt ? formatDate(rawEndsAt, locale) : ''
 
-	const monthlyPrice = isUSD ? '$39' : `39${symbol}`
-	const yearlyPrice = isUSD ? '$299' : `299${symbol}`
-	const monthlyEquivalent = isUSD ? '$24.92' : `24,92${symbol}`
+	const {monthlyPrice, yearlyPrice, monthlyEquivalent} = getPlanPrices(
+		auth?.user?.currency,
+		auth?.user?.currency_symbol
+	)
 
 	return (
 		<div className="py-4">

@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {useTranslation} from '@/hooks/useTranslation';
 import {useChat} from '@ai-sdk/react';
 import {DefaultChatTransport} from 'ai';
-import {Toast} from '@/Components/Toast';
+import {Toast} from '@/Components/toast';
 import toast from 'react-hot-toast';
 import {router} from '@inertiajs/react';
 import {useTicketScan} from '@/hooks/useTicketScan';

@@ -1,4 +1,4 @@
-import {useFlashToast} from '@/hooks/useFlashToast'
+import {useFlashToast} from './useFlashToast'
 
 export const FlashToastListener = () => {
 	useFlashToast()

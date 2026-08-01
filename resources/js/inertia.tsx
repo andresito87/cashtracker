@@ -2,8 +2,7 @@
 import React from 'react'
 import {createInertiaApp} from '@inertiajs/react'
 import {createRoot} from 'react-dom/client'
-import {ToastContainer} from '@/Components/ToastContainer'
-import {FlashToastListener} from '@/Components/FlashToastListener'
+import {FlashToastListener, ToastContainer} from '@/Components/toast'
 
 createInertiaApp({
 	title: title => title ? `CashTracker - ${title}` : 'CashTracker',

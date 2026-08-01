@@ -11,7 +11,7 @@ interface ManageProps {
 	subscription?: Subscription | null
 }
 
-export const Manage: React.FC<ManageProps> = ({subscription}) => {
+export const Manage = ({subscription}: ManageProps) => {
 	const {auth} = usePage<SharedData>().props
 	const {t} = useTranslation()
 	const {

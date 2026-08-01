@@ -5,7 +5,7 @@ interface SubscriptionDowngradeProps {
 	endsAt?: string | null
 }
 
-export const SubscriptionDowngrade: React.FC<SubscriptionDowngradeProps> = ({endsAt}) => {
+export const SubscriptionDowngrade = ({endsAt}: SubscriptionDowngradeProps) => {
 	const {t} = useTranslation()
 
 	return (

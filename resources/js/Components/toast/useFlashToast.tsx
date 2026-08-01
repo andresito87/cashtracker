@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react'
 import {usePage} from '@inertiajs/react'
 import toast from 'react-hot-toast'
-import {Toast} from '@/Components/Toast'
+import {Toast} from './Toast'
 import {SharedData} from '@/types'
 
 const TOAST_DURATION = 4000
