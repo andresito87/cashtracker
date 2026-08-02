@@ -28,7 +28,11 @@ class BudgetChatController extends Controller
         $agent = app(BudgetAssistant::class);
         $agent->budgetId = $budget->id;
         $formattedBudgetAmount = $budget->formattedAmount();
-        $agent->budgetContext = "Este presupuesto es de tipo '{$budget->type->value}' llamado '$budget->name' con un monto total de $formattedBudgetAmount. Los gastos tienen nombre, monto y categoría.";
+        $agent->budgetContext = __('messages.chat_budget_context', [
+            'type' => $budget->type->value,
+            'name' => $budget->name,
+            'amount' => $formattedBudgetAmount,
+        ]);
 
         return $agent->stream(
             $prompt,

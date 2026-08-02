@@ -71,7 +71,6 @@ return [
     'forgot_password' => 'Forgot your password?',
     'sign_in' => 'Sign In',
     'sign_up' => 'Sign Up',
-    'status_uncompromised' => 'The provided password has appeared in a data leak. Please choose a different password.',
 
     /*
     |--------------------------------------------------------------------------
@@ -206,6 +205,16 @@ return [
     'agent_consult' => 'Send Query',
     'agent_thinking' => 'Thinking...',
     'agent_user_avatar' => 'YOU',
+    'chat_budget_context' => 'This budget is of type \':type\' named \':name\' with a total amount of :amount. Expenses have name, amount and category.',
+    'ticket_scan_prompt' => 'Read this sales receipt and extract the structured information in JSON. If the receipt currency differs from :currency (:symbol), convert each amount to :currency (:symbol).',
+    'ticket_scan_no_items' => 'No products with an amount greater than 0 were found on the receipt.',
+    'ticket_scan_exceeds_balance' => 'The receipt total (:symbol:total) exceeds the available balance in this budget (:symbol:balance). No expenses were recorded.',
+    'ticket_scan_user_message' => 'I uploaded a receipt.',
+    'ticket_scan_user_full_message' => 'I uploaded a receipt. Please extract the expense information and create a new expense record with the relevant details.',
+    'ticket_scan_error_http' => 'There was an error uploading the receipt (:status). Please try again.',
+    'ticket_scan_error_connection' => 'There was a connection error uploading the receipt. Please try again.',
+    'ticket_scan_success' => ':count expenses from the receipt were recorded:',
+    'ticket_scan_total' => 'Total: :symbol:total',
 
     /*
     |--------------------------------------------------------------------------
@@ -273,8 +282,38 @@ return [
     'cannot_downgrade_yearly' => 'Direct downgrade from yearly to monthly plan is not allowed. You can cancel your current subscription to switch when the billing period ends.',
     'subscription_canceled_success' => 'Subscription canceled successfully.',
     'subscription_resumed_success' => 'Subscription resumed successfully.',
+    'subscription_swapped' => 'Plan changed successfully.',
     'billing_success_title' => 'Payment Completed Successfully!',
     'billing_success_subtitle' => 'Your account has been upgraded to PRO. You can now enjoy all advanced features.',
     'billing_cancel_title' => 'Payment Canceled',
     'billing_cancel_subtitle' => 'No charges were made to your account. You can try again whenever you like.',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Account Settings & Profile
+    |--------------------------------------------------------------------------
+    */
+    'profile_tab' => 'Profile',
+    'password_tab' => 'Password',
+    'profile_settings_title' => 'Profile Settings',
+    'profile_settings_subtitle' => 'Update your personal information and email address.',
+    'password_settings_title' => 'Change Password',
+    'password_settings_subtitle' => 'Ensure your account is using a long, random password to stay secure.',
+    'save_changes' => 'Save Changes',
+    'saving_changes' => 'Saving...',
+    'update_password' => 'Update Password',
+    'updating_password' => 'Updating...',
+    'profile_updated' => 'Your profile has been updated successfully.',
+    'password_updated' => 'Your password has been updated successfully.',
+    'current_password_label' => 'Current Password',
+    'current_password_placeholder' => 'Your current password',
+    'new_password_label' => 'New Password',
+    'new_password_placeholder' => 'Min. 8 characters',
+    'confirm_password_label' => 'Confirm New Password',
+    'email_verification_notice' => 'If you change your email address, you will need to verify your account again.',
+    'validation_current_password_required' => 'Please enter your current password.',
+    'validation_current_password_invalid' => 'The current password is incorrect.',
+    'validation_password_required' => 'The new password is required.',
+    'validation_name_max' => 'The name may not be greater than 100 characters.',
+    'validation_email_max' => 'The email may not be greater than 254 characters.',
 ];

@@ -8,6 +8,8 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TicketScanController;
+use App\Http\Controllers\UpdatePasswordController;
+use App\Http\Controllers\UpdateProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -67,33 +69,23 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'verified'])->group(function () {
+    // Dashboard Route for authenticated and verified users only
     Route::get('/dashboard', [BudgetController::class, 'index'])->name('dashboard');
 
-    Route::get('/settings', function () {
-        return redirect()->route('dashboard');
-    })->name('settings');
-
-    Route::get('/password/change', function () {
-        return redirect()->route('dashboard');
-    })->name('password.edit');
-
+    // TODO: Create admin panel page
     Route::get('/admin', function () {
         return redirect()->route('dashboard');
     })->name('admin.dashboard');
 
+    // Budget Management Routes
     Route::resource('budgets', BudgetController::class);
 
+    // Expense Management Routes
     Route::post('/budgets/{budget}/expenses', [ExpenseController::class, 'store'])->name('budgets.expenses.store');
     Route::put('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
     Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
 
-    Route::post('/budgets/{budget}/chat', [BudgetChatController::class, 'store'])
-        ->middleware('throttle:20,1')
-        ->name('budgets.chat');
-    Route::post('/budgets/{budget}/scan-ticket', [TicketScanController::class, 'store'])
-        ->middleware('throttle:10,1')
-        ->name('budgets.scan-ticket');
-
+    // Subscription routes for Stripe integration
     Route::post('/subscription-checkout/{plan}',
         [SubscriptionController::class, 'checkout'])->name('subscription.checkout');
     Route::get('/subscription', [SubscriptionController::class, 'manage'])
@@ -108,10 +100,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/subscription/resume', [SubscriptionController::class, 'resume'])
         ->name('subscription.resume');
 
+    // Billing routes for Stripe integration
     Route::get('/billing', [SubscriptionController::class, 'billing'])
         ->name('billing');
-
     Route::get('/billing/success', [SubscriptionController::class, 'success'])->name('billing.success');
     Route::get('/billing/cancel', [SubscriptionController::class, 'cancelUrl'])->name('billing.cancel');
 
+    // Only allow users with an active subscription to access these routes, AI advanced features
+    Route::middleware('subscribed')->group(function () {
+        Route::post('/budgets/{budget}/chat', [BudgetChatController::class, 'store'])
+            ->middleware('throttle:20,1')
+            ->name('budgets.chat');
+        Route::post('/budgets/{budget}/scan-ticket', [TicketScanController::class, 'store'])
+            ->middleware('throttle:10,1')
+            ->name('budgets.scan-ticket');
+    });
+
+    // User Menu Options to change settings(name, email) and password
+    Route::get('/settings/profile', [UpdateProfileController::class, 'edit'])->name('settings.profile');
+    Route::put('/settings/profile', [UpdateProfileController::class, 'update'])->name('settings.profile.update');
+    Route::get('/settings/password', [UpdatePasswordController::class, 'edit'])->name('settings.password');
+    Route::put('/settings/password', [UpdatePasswordController::class, 'update'])->name('settings.password.update');
 });

@@ -32,7 +32,10 @@ class TicketScanController extends Controller
         $scanner->currency = $userCurrency;
 
         $response = $scanner->prompt(
-            "Lee este ticket de venta y extrae la información estructurada en JSON. Si la moneda del ticket difiere de $userCurrency->value ({$userCurrency->symbol()}), convierte cada importe a $userCurrency->value ({$userCurrency->symbol()}).",
+            __('messages.ticket_scan_prompt', [
+                'currency' => $userCurrency->value,
+                'symbol' => $userCurrency->symbol(),
+            ]),
             attachments: [Files\Image::fromPath($request->file('image'))],
             provider: 'openrouter',
             model: 'openrouter/free',
@@ -48,7 +51,7 @@ class TicketScanController extends Controller
         if (empty($items)) {
             return response()->json([
                 'success' => false,
-                'message' => 'No se encontraron productos con un importe mayor a 0 en el ticket.',
+                'message' => __('messages.ticket_scan_no_items'),
             ], status: 422);
         }
 
@@ -63,7 +66,11 @@ class TicketScanController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => "El total del ticket ($symbol$formattedTotal) excede el saldo disponible en este presupuesto ($symbol$formattedBalance). No se registraron los gastos.",
+                'message' => __('messages.ticket_scan_exceeds_balance', [
+                    'symbol' => $symbol,
+                    'total' => $formattedTotal,
+                    'balance' => $formattedBalance,
+                ]),
             ], status: 422);
         }
 
@@ -105,9 +112,9 @@ class TicketScanController extends Controller
 
         return [
             'success' => true,
-            'message' => 'Se registraron '.count($created)." gastos del ticket:\n".
-                implode("\n", $created).
-                "\nTotal: $symbol$total",
+            'message' => __('messages.ticket_scan_success', ['count' => count($created)])."\n".
+                implode("\n", $created)."\n".
+                __('messages.ticket_scan_total', ['symbol' => $symbol, 'total' => $total]),
         ];
     }
 }

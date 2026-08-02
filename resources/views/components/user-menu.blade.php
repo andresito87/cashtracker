@@ -59,7 +59,7 @@
 					</a>
 				@endif
 
-				<a href="{{ route('settings') }}"
+				<a href="{{ route('settings.profile') }}"
 				   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-gray-200 hover:bg-purple-800/50 hover:text-white transition-all duration-150 active:scale-95">
 					<svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -70,7 +70,7 @@
 					<span>{{ __('messages.settings') }}</span>
 				</a>
 
-				<a href="{{ route('password.edit') }}"
+				<a href="{{ route('settings.password') }}"
 				   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-gray-200 hover:bg-purple-800/50 hover:text-white transition-all duration-150 active:scale-95">
 					<svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

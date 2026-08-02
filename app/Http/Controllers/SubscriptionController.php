@@ -117,7 +117,7 @@ class SubscriptionController extends Controller
             }
         }
 
-        return back()->with('status', __('messages.budget_updated'));
+        return back()->with('status', __('messages.subscription_swapped'));
     }
 
     /**

@@ -16,8 +16,6 @@ const Ziggy = {
 		},
 		"verification.send": {"uri": "email\/verification-notification", "methods": ["POST"]},
 		"dashboard": {"uri": "dashboard", "methods": ["GET", "HEAD"]},
-		"settings": {"uri": "settings", "methods": ["GET", "HEAD"]},
-		"password.edit": {"uri": "password\/change", "methods": ["GET", "HEAD"]},
 		"admin.dashboard": {"uri": "admin", "methods": ["GET", "HEAD"]},
 		"budgets.index": {"uri": "budgets", "methods": ["GET", "HEAD"]},
 		"budgets.create": {"uri": "budgets\/create", "methods": ["GET", "HEAD"]},
@@ -58,6 +56,20 @@ const Ziggy = {
 			"parameters": ["expense"],
 			"bindings": {"expense": "id"}
 		},
+		"subscription.checkout": {"uri": "subscription-checkout\/{plan}", "methods": ["POST"], "parameters": ["plan"]},
+		"subscription.manage": {"uri": "subscription", "methods": ["GET", "HEAD"]},
+		"plans": {"uri": "plans", "methods": ["GET", "HEAD"]},
+		"subscription.swap": {
+			"uri": "subscription\/swap\/{plan}",
+			"methods": ["POST"],
+			"wheres": {"plan": "monthly|yearly"},
+			"parameters": ["plan"]
+		},
+		"subscription.cancel": {"uri": "subscription\/cancel", "methods": ["POST"]},
+		"subscription.resume": {"uri": "subscription\/resume", "methods": ["POST"]},
+		"billing": {"uri": "billing", "methods": ["GET", "HEAD"]},
+		"billing.success": {"uri": "billing\/success", "methods": ["GET", "HEAD"]},
+		"billing.cancel": {"uri": "billing\/cancel", "methods": ["GET", "HEAD"]},
 		"budgets.chat": {
 			"uri": "budgets\/{budget}\/chat",
 			"methods": ["POST"],
@@ -70,19 +82,10 @@ const Ziggy = {
 			"parameters": ["budget"],
 			"bindings": {"budget": "id"}
 		},
-		"subscription.checkout": {"uri": "subscription-checkout\/{plan}", "methods": ["POST"], "parameters": ["plan"]},
-		"subscription.manage": {"uri": "subscription", "methods": ["GET", "HEAD"]},
-		"plans": {"uri": "plans", "methods": ["GET", "HEAD"]},
-		"subscription.swap": {
-			"uri": "subscription\/swap\/{plan}",
-			"methods": ["POST"],
-			"wheres": {"plan": "monthly|yearly"},
-			"parameters": ["plan"]
-		},
-		"subscription.cancel": {"uri": "subscription\/cancel", "methods": ["POST"]},
-		"subscription.resume": {"uri": "subscription\/resume", "methods": ["POST"]},
-		"billing.success": {"uri": "billing\/success", "methods": ["GET", "HEAD"]},
-		"billing.cancel": {"uri": "billing\/cancel", "methods": ["GET", "HEAD"]},
+		"settings.profile": {"uri": "settings\/profile", "methods": ["GET", "HEAD"]},
+		"settings.profile.update": {"uri": "settings\/profile", "methods": ["PUT"]},
+		"settings.password": {"uri": "settings\/password", "methods": ["GET", "HEAD"]},
+		"settings.password.update": {"uri": "settings\/password", "methods": ["PUT"]},
 		"storage.local": {
 			"uri": "storage\/{path}", "methods": ["GET", "HEAD"], "wheres": {"path": ".*"}, "parameters": ["path"]
 		},

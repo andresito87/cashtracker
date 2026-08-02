@@ -37,7 +37,9 @@ conversational expense creation with automated UI state synchronization.
   percentage against budget limits. Prevents expense creation or updates from exceeding the available budget balance.
 * **Inertia.js & React Modal System:** Expense creation and editing are handled via a client-side React modal
   ([ExpenseModal.tsx](resources/js/Components/ExpenseModal.tsx))
-  with Zustand state management ([expense-modal-store.ts](resources/js/store/expense-modal-store.ts)).
+  with Zustand state management ([expense-modal-store.ts](resources/js/store/expense-modal-store.ts)). Budget editing
+  also uses a React modal ([BudgetModal.tsx](resources/js/Components/BudgetModal.tsx)) with its own Zustand store
+  ([budget-modal-store.ts](resources/js/store/budget-modal-store.ts)), providing a consistent UX across both entities.
 * **Typed React Validation Error Component:** Field validation errors in React forms utilize a reusable
   `<InputError message={...} />` component ([InputError.tsx](resources/js/Components/InputError.tsx)), cleanly decoupled
   from server-side Blade components.
@@ -72,42 +74,45 @@ conversational expense creation with automated UI state synchronization.
 
 Below is the routing architecture for budgets, expenses, ticket scanning, and PRO subscriptions:
 
-| HTTP Method | URI Path                           | Route Name               | Controller & Action                     | Description                                         |
-|:------------|:-----------------------------------|:-------------------------|:----------------------------------------|:----------------------------------------------------|
-| `GET`       | `/`                                | `welcome`                | `Closure`                               | Welcome / landing page                              |
-| `GET`       | `/dashboard`                       | `dashboard`              | `BudgetController@index`                | User dashboard listing budgets                      |
-| `GET`       | `/budgets`                         | `budgets.index`          | `BudgetController@index`                | List user budgets                                   |
-| `POST`      | `/budgets`                         | `budgets.store`          | `BudgetController@store`                | Create a new budget                                 |
-| `GET`       | `/budgets/create`                  | `budgets.create`         | `BudgetController@create`               | Show create budget form                             |
-| `GET`       | `/budgets/{budget}`                | `budgets.show`           | `BudgetController@show`                 | View budget details & expense list                  |
-| `PUT`       | `/budgets/{budget}`                | `budgets.update`         | `BudgetController@update`               | Update budget details                               |
-| `DELETE`    | `/budgets/{budget}`                | `budgets.destroy`        | `BudgetController@destroy`              | Soft delete budget                                  |
-| `GET`       | `/budgets/{budget}/edit`           | `budgets.edit`           | `BudgetController@edit`                 | Show edit budget form                               |
-| `POST`      | `/budgets/{budget}/chat`           | `budgets.chat`           | `BudgetChatController@store`            | Stream AI agent chat for budget (`throttle:20,1`)   |
-| `POST`      | `/budgets/{budget}/scan-ticket`    | `budgets.scan-ticket`    | `TicketScanController@store`            | OCR Ticket Scanner & Auto-Expense (`throttle:10,1`) |
-| `POST`      | `/budgets/{budget}/expenses`       | `budgets.expenses.store` | `ExpenseController@store`               | Create expense under budget                         |
-| `PUT`       | `/expenses/{expense}`              | `expenses.update`        | `ExpenseController@update`              | Update expense (Shallow route)                      |
-| `DELETE`    | `/expenses/{expense}`              | `expenses.destroy`       | `ExpenseController@destroy`             | Soft delete expense (Shallow route)                 |
-| `GET`       | `/plans`                           | `plans`                  | `SubscriptionController@manage`         | PRO plans & subscription management page            |
-| `POST`      | `/subscription-checkout/{plan}`    | `subscription.checkout`  | `SubscriptionController@checkout`       | Create Stripe checkout session for plan             |
-| `GET`       | `/subscription`                    | `subscription.manage`    | `SubscriptionController@manage`         | User subscription management route                  |
-| `POST`      | `/subscription/swap/{plan}`        | `subscription.swap`      | `SubscriptionController@swap`           | Swap active subscription plan (monthly / yearly)    |
-| `POST`      | `/subscription/cancel`             | `subscription.cancel`    | `SubscriptionController@cancel`         | Cancel active subscription                          |
-| `POST`      | `/subscription/resume`             | `subscription.resume`    | `SubscriptionController@resume`         | Resume canceled subscription on grace period        |
-| `GET`       | `/billing/success`                 | `billing.success`        | `Closure`                               | Stripe checkout success confirmation page           |
-| `GET`       | `/billing/cancel`                  | `billing.cancel`         | `Closure`                               | Stripe checkout cancellation page                   |
-| `GET`       | `/auth/login`                      | `login`                  | `LoginController@index`                 | Show login form                                     |
-| `POST`      | `/auth/login`                      | `login.store`            | `LoginController@store`                 | Authenticate user                                   |
-| `POST`      | `/auth/logout`                     | `logout`                 | `LoginController@destroy`               | Logout user                                         |
-| `GET`       | `/auth/register`                   | `register`               | `RegisterController@index`              | Show registration form                              |
-| `POST`      | `/auth/register`                   | `register.store`         | `RegisterController@store`              | Register new user                                   |
-| `GET`       | `/email/verify`                    | `verification.notice`    | `Closure`                               | Email verification notice                           |
-| `GET`       | `/verify-email/{id}/{hash}`        | `verification.verify`    | `RegisterController@verifyEmail`        | Verify email via signed URL                         |
-| `POST`      | `/email/verification-notification` | `verification.send`      | `RegisterController@resendVerification` | Resend verification email                           |
-| `GET`       | `/lang/{locale}`                   | `lang.switch`            | `LanguageController@switch`             | Switch application language                         |
-| `GET`       | `/settings`                        | `settings`               | `Closure`                               | User settings page                                  |
-| `GET`       | `/password/change`                 | `password.edit`          | `Closure`                               | Change password page                                |
-| `GET`       | `/admin`                           | `admin.dashboard`        | `Closure`                               | Admin dashboard                                     |
+| HTTP Method | URI Path                           | Route Name                 | Controller & Action                     | Description                                         |
+|:------------|:-----------------------------------|:---------------------------|:----------------------------------------|:----------------------------------------------------|
+| `GET`       | `/`                                | `welcome`                  | `Closure`                               | Welcome / landing page                              |
+| `GET`       | `/dashboard`                       | `dashboard`                | `BudgetController@index`                | User dashboard listing budgets                      |
+| `GET`       | `/budgets`                         | `budgets.index`            | `BudgetController@index`                | List user budgets                                   |
+| `POST`      | `/budgets`                         | `budgets.store`            | `BudgetController@store`                | Create a new budget                                 |
+| `GET`       | `/budgets/create`                  | `budgets.create`           | `BudgetController@create`               | Show create budget form                             |
+| `GET`       | `/budgets/{budget}`                | `budgets.show`             | `BudgetController@show`                 | View budget details & expense list                  |
+| `PUT`       | `/budgets/{budget}`                | `budgets.update`           | `BudgetController@update`               | Update budget details                               |
+| `DELETE`    | `/budgets/{budget}`                | `budgets.destroy`          | `BudgetController@destroy`              | Soft delete budget                                  |
+| `GET`       | `/budgets/{budget}/edit`           | `budgets.edit`             | `BudgetController@edit`                 | Show edit budget form                               |
+| `POST`      | `/budgets/{budget}/chat`           | `budgets.chat`             | `BudgetChatController@store`            | Stream AI agent chat for budget (`throttle:20,1`)   |
+| `POST`      | `/budgets/{budget}/scan-ticket`    | `budgets.scan-ticket`      | `TicketScanController@store`            | OCR Ticket Scanner & Auto-Expense (`throttle:10,1`) |
+| `POST`      | `/budgets/{budget}/expenses`       | `budgets.expenses.store`   | `ExpenseController@store`               | Create expense under budget                         |
+| `PUT`       | `/expenses/{expense}`              | `expenses.update`          | `ExpenseController@update`              | Update expense (Shallow route)                      |
+| `DELETE`    | `/expenses/{expense}`              | `expenses.destroy`         | `ExpenseController@destroy`             | Soft delete expense (Shallow route)                 |
+| `GET`       | `/plans`                           | `plans`                    | `SubscriptionController@manage`         | PRO plans & subscription management page            |
+| `POST`      | `/subscription-checkout/{plan}`    | `subscription.checkout`    | `SubscriptionController@checkout`       | Create Stripe checkout session for plan             |
+| `GET`       | `/subscription`                    | `subscription.manage`      | `SubscriptionController@manage`         | User subscription management route                  |
+| `POST`      | `/subscription/swap/{plan}`        | `subscription.swap`        | `SubscriptionController@swap`           | Swap active subscription plan (monthly / yearly)    |
+| `POST`      | `/subscription/cancel`             | `subscription.cancel`      | `SubscriptionController@cancel`         | Cancel active subscription                          |
+| `POST`      | `/subscription/resume`             | `subscription.resume`      | `SubscriptionController@resume`         | Resume canceled subscription on grace period        |
+| `GET`       | `/billing`                         | `billing`                  | `SubscriptionController@billing`        | Stripe billing portal page                          |
+| `GET`       | `/billing/success`                 | `billing.success`          | `SubscriptionController@success`        | Stripe checkout success confirmation page           |
+| `GET`       | `/billing/cancel`                  | `billing.cancel`           | `SubscriptionController@cancelUrl`      | Stripe checkout cancellation page                   |
+| `GET`       | `/auth/login`                      | `login`                    | `LoginController@index`                 | Show login form                                     |
+| `POST`      | `/auth/login`                      | `login.store`              | `LoginController@store`                 | Authenticate user                                   |
+| `POST`      | `/auth/logout`                     | `logout`                   | `LoginController@destroy`               | Logout user                                         |
+| `GET`       | `/auth/register`                   | `register`                 | `RegisterController@index`              | Show registration form                              |
+| `POST`      | `/auth/register`                   | `register.store`           | `RegisterController@store`              | Register new user                                   |
+| `GET`       | `/email/verify`                    | `verification.notice`      | `Closure`                               | Email verification notice                           |
+| `GET`       | `/verify-email/{id}/{hash}`        | `verification.verify`      | `RegisterController@verifyEmail`        | Verify email via signed URL                         |
+| `POST`      | `/email/verification-notification` | `verification.send`        | `RegisterController@resendVerification` | Resend verification email                           |
+| `GET`       | `/lang/{locale}`                   | `lang.switch`              | `LanguageController@switch`             | Switch application language                         |
+| `GET`       | `/settings/profile`                | `settings.profile`         | `UpdateProfileController@edit`          | User profile settings page (Inertia React)          |
+| `PUT`       | `/settings/profile`                | `settings.profile.update`  | `UpdateProfileController@update`        | Update user name and email                          |
+| `GET`       | `/settings/password`               | `settings.password`        | `UpdatePasswordController@edit`         | Password change settings page (Inertia React)       |
+| `PUT`       | `/settings/password`               | `settings.password.update` | `UpdatePasswordController@update`       | Update user password                                |
+| `GET`       | `/admin`                           | `admin.dashboard`          | `Closure`                               | Admin dashboard                                     |
 
 ### 3. High-Performance Internationalization (i18n)
 
@@ -162,6 +167,8 @@ We abstract UI components cleanly across both Blade (server-side) and React (cli
 	  field validation messages for Inertia form state.
 	* **`<ExpenseModal />` & `<ExpenseForm />` (`resources/js/Components/ExpenseModal.tsx`)**: Client-side React modal
 	  and form for creating and editing budget expenses with Zustand state synchronization.
+	* **`<BudgetModal />` & `<BudgetForm />` (`resources/js/Components/BudgetModal.tsx`)**: Client-side React modal and
+	  form for editing budget details (name, amount, type, description) with Zustand state synchronization.
 	* **`<ConfirmDeleteModal />` (`resources/js/Components/ConfirmDeleteModal.tsx`)**: Reusable deletion modal for
 	  confirming budget or expense removal.
 	* **`<ProgressBar />` (`resources/js/Components/ProgressBar.tsx`)**: Visual progress bar displaying budget
@@ -170,6 +177,12 @@ We abstract UI components cleanly across both Blade (server-side) and React (cli
 	  `resources/js/Components/ToastContainer.tsx`)**: Custom toast notification system for user feedback.
 	* **`<FlashToastListener />` (`resources/js/Components/FlashToastListener.tsx`)**: Listens for Inertia flash props
 	  and triggers toast notifications automatically.
+	* **`<SettingsHeader />` (`resources/js/Components/settings/SettingsHeader.tsx`)**: Shared header component for
+	  settings pages with tab navigation between profile and password sections.
+	* **`<UpdateProfile />` (`resources/js/Pages/Settings/UpdateProfile.tsx`)**: Inertia React page for editing user
+	  profile (name and email) with server-side validation and email re-verification on change.
+	* **`<UpdatePassword />` (`resources/js/Pages/Settings/UpdatePassword.tsx`)**: Inertia React page for changing user
+	  password with current password verification and confirmation matching.
 
 ### 7. AI Financial Assistant & Agentic Tools
 
@@ -192,6 +205,24 @@ We abstract UI components cleanly across both Blade (server-side) and React (cli
 	* Trigger-based Toast notifications using `react-hot-toast` + Inertia data reloads
 	  (`router.reload({ only: ['budget', 'expenses'] })`) when an expense is successfully registered via
 	  `[EXPENSE_CREATED]`.
+
+---
+
+### 8. User Settings & Profile Management
+
+* **Inertia React Settings Pages:** Profile and password management are handled via dedicated React pages
+  (`UpdateProfile.tsx`, `UpdatePassword.tsx`) rendered through Inertia, providing a seamless SPA experience without full
+  page reloads.
+* **Tabbed Navigation:** A shared `<SettingsHeader />` component provides tab-based navigation between profile and
+  password sections, with prefetching enabled for instant tab switching.
+* **Server-Side Validation:** Both forms use Laravel Form Requests (`UpdateProfileRequest`, `UpdatePasswordRequest`)
+  for robust validation, with errors displayed inline below each field via the `<InputError />` component.
+* **Email Re-Verification:** When a user changes their email address, the system automatically nullifies
+  `email_verified_at` and sends a new verification notification, ensuring email ownership is always validated.
+* **Password Security:** Password changes require current password verification, new password confirmation matching, and
+  minimum length validation (8 characters). The form resets password fields on successful update.
+* **Zustand State Management:** Budget editing uses a dedicated Zustand store (`budget-modal-store.ts`) following the
+  same pattern as expense modals, ensuring consistent state management across the application.
 
 ---
 
@@ -375,7 +406,7 @@ CashTracker features a robust, professional test suite powered by **Pest PHP 4**
   safety for the local/production database.
 * **Domain Test Helpers (`tests/Pest.php`):** Centralized helpers simplify test setup and keep code DRY:
 	* `createVerifiedUser()`, `createUnverifiedUser()`, `createAdminUser()`
-	* `actingAsVerifiedUser()`, `actingAsUnverifiedUser()`
+	* `actingAsVerifiedUser()`, `actingAsUnverifiedUser()`, `actingAsSubscribedUser()`
 	* `validRegistrationPayload()`, `validBudgetPayload()`
 * **Comprehensive Coverage:**
 	* **Authentication & Guest Access:** Login, logout, session locale persistence, invalid credentials handling, guest
@@ -387,6 +418,9 @@ CashTracker features a robust, professional test suite powered by **Pest PHP 4**
 	* **Budget & Expense Management:** Full CRUD test coverage (`ExpenseCrudTest`), policy authorization
 	  (`ExpensePolicy`, `BudgetPolicy`), soft deletion, payload validation, available budget balance limits, guest route
 	  restrictions, and Inertia flash prop sharing.
+	* **User Settings:** Profile update tests (`UpdateProfileTest`), password change tests (`UpdatePasswordTest`), Form
+	  Request validation tests (`UpdateProfileRequestTest`, `UpdatePasswordRequestTest`), email re-verification on email
+	  change, and current password verification for password updates.
 	* **Internationalization (i18n):** Multi-language assertions (`en` and `es`) across forms, views, notifications, and
 	  validation error messages.
 	* **AI Tools & Agent:** Unit tests for `SearchExpenses`, `AddExpense` tools and `BudgetAssistant` agent

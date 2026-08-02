@@ -36,7 +36,7 @@ export const CashTrackerAgent = ({budgetId}: Props) => {
 			if (expenseCreated || hasTag) {
 				toast.custom((tToast) => (
 					<Toast
-						message={t('expense_created') !== 'expense_created' ? t('expense_created') : 'Gasto añadido con éxito.'}
+						message={t('expense_created')}
 						type="success"
 						duration={4000}
 						visible={tToast.visible}
@@ -87,10 +87,10 @@ export const CashTrackerAgent = ({budgetId}: Props) => {
 				</div>
 				<div>
 					<h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
-						{t('agent_title') !== 'agent_title' ? t('agent_title') : 'Asistente CashTracker'}
+						{t('agent_title')}
 					</h2>
 					<p className="text-xs sm:text-sm text-gray-500 font-medium mt-1">
-						{t('agent_subtitle') !== 'agent_subtitle' ? t('agent_subtitle') : 'Consulta tus gastos, haz preguntas sobre tu presupuesto o sube un ticket.'}
+						{t('agent_subtitle')}
 					</p>
 				</div>
 			</div>
@@ -126,7 +126,7 @@ export const CashTrackerAgent = ({budgetId}: Props) => {
 				<textarea
 					value={input}
 					onChange={(e) => setInput(e.target.value)}
-					placeholder={t('agent_placeholder') !== 'agent_placeholder' ? t('agent_placeholder') : 'Consulta dudas sobre tu presupuesto o añade gastos...'}
+					placeholder={t('agent_placeholder')}
 					rows={3}
 					className="w-full rounded-2xl border border-gray-200 bg-slate-50/60 p-4 text-sm sm:text-base placeholder:text-gray-400 focus:ring-2 focus:ring-purple-900/20 focus:outline-none transition-all duration-200 resize-none shadow-2xs"
 				/>
@@ -144,7 +144,7 @@ export const CashTrackerAgent = ({budgetId}: Props) => {
 							      d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316A2.192 2.192 0 0014.49 4.25H9.51c-.69 0-1.325.356-1.69.948l-.993 1.623z"/>
 							<path strokeLinecap="round" strokeLinejoin="round" d="M15 13.5a3 3 0 11-6 0 3 3 0 016 0z"/>
 						</svg>
-						<span>{t('agent_upload_ticket') !== 'agent_upload_ticket' ? t('agent_upload_ticket') : 'Subir Ticket'}</span>
+						<span>{t('agent_upload_ticket')}</span>
 					</button>
 
 					<button
@@ -158,8 +158,8 @@ export const CashTrackerAgent = ({budgetId}: Props) => {
 						</svg>
 						<span>
 							{isProcessing
-								? (t('agent_thinking') !== 'agent_thinking' ? t('agent_thinking') : 'Pensando...')
-								: (t('agent_consult') !== 'agent_consult' ? t('agent_consult') : 'Consultar')}
+								? t('agent_thinking')
+								: t('agent_consult')}
 						</span>
 					</button>
 				</div>

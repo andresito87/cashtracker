@@ -67,7 +67,7 @@ describe('TicketScanController — Happy Path', function () {
     });
 
     it('creates expenses and returns success response when items are valid and fit in remaining balance', function () {
-        $user = actingAsVerifiedUser();
+        $user = actingAsSubscribedUser();
         $budget = Budget::factory()->for($user)->create([
             'amount' => 100,
         ]);
@@ -84,7 +84,10 @@ describe('TicketScanController — Happy Path', function () {
         ]);
 
         $catLabel = ExpenseCategory::Food->label();
-        $expectedMessage = "Se registraron 2 gastos del ticket:\n- Supermercado Dia - Leche Entera: €3.50 ($catLabel)\n- Supermercado Dia - Pan Integral: €2.00 ($catLabel)\nTotal: €5.50";
+        $expectedMessage = __('messages.ticket_scan_success', ['count' => 2])."\n".
+            "- Supermercado Dia - Leche Entera: €3.50 ($catLabel)\n".
+            "- Supermercado Dia - Pan Integral: €2.00 ($catLabel)\n".
+            __('messages.ticket_scan_total', ['symbol' => '€', 'total' => '5.50']);
 
         $response->assertOk()
             ->assertJsonPath('success', true)
@@ -104,7 +107,7 @@ describe('TicketScanController — Happy Path', function () {
     });
 
     it('uses the custom currency symbol of the user account in the response message', function () {
-        $user = actingAsVerifiedUser(['currency' => Currency::USD]);
+        $user = actingAsSubscribedUser(['currency' => Currency::USD]);
         $budget = Budget::factory()->for($user)->create([
             'amount' => 500,
         ]);
@@ -120,7 +123,9 @@ describe('TicketScanController — Happy Path', function () {
         ]);
 
         $catLabel = ExpenseCategory::Home->label();
-        $expectedMessage = "Se registraron 1 gastos del ticket:\n- Apple Store - Apple Watch Charger: $29.99 ($catLabel)\nTotal: $29.99";
+        $expectedMessage = __('messages.ticket_scan_success', ['count' => 1])."\n".
+            "- Apple Store - Apple Watch Charger: $29.99 ($catLabel)\n".
+            __('messages.ticket_scan_total', ['symbol' => '$', 'total' => '29.99']);
 
         $response->assertOk()
             ->assertJsonPath('success', true)
@@ -128,7 +133,7 @@ describe('TicketScanController — Happy Path', function () {
     });
 
     it('filters out $0.00 items from ticket and creates expenses only for non-zero items', function () {
-        $user = actingAsVerifiedUser();
+        $user = actingAsSubscribedUser();
         $budget = Budget::factory()->for($user)->create([
             'amount' => 200,
         ]);
@@ -164,8 +169,20 @@ describe('TicketScanController — Error & Edge Cases', function () {
         Storage::fake('local');
     });
 
-    it('returns HTTP 422 error and does NOT create expenses when ticket total exceeds remaining balance', function () {
+    it('redirects unsubscribed users trying to scan a ticket to subscription manage page', function () {
         $user = actingAsVerifiedUser();
+        $budget = Budget::factory()->for($user)->create();
+
+        $file = UploadedFile::fake()->image('ticket.jpg');
+
+        $this->post(route('budgets.scan-ticket', $budget), [
+            'image' => $file,
+        ])->assertRedirect(route('subscription.manage'))
+            ->assertSessionHas('error', 'You must be subscribed to access this feature.');
+    });
+
+    it('returns HTTP 422 error and does NOT create expenses when ticket total exceeds remaining balance', function () {
+        $user = actingAsSubscribedUser();
         $budget = Budget::factory()->for($user)->create([
             'amount' => 50.00,
         ]);
@@ -188,14 +205,18 @@ describe('TicketScanController — Error & Edge Cases', function () {
 
         $response->assertStatus(422)
             ->assertJsonPath('success', false)
-            ->assertJsonPath('message', 'El total del ticket (€15.00) excede el saldo disponible en este presupuesto (€10.00). No se registraron los gastos.');
+            ->assertJsonPath('message', __('messages.ticket_scan_exceeds_balance', [
+                'symbol' => '€',
+                'total' => '15.00',
+                'balance' => '10.00',
+            ]));
 
         // Integrity check: total expenses in DB must remain exactly 1 (the initial 40.00)
         expect(Expense::where('budget_id', $budget->id)->count())->toBe(1);
     });
 
     it('returns HTTP 422 error when no items with amount > 0 are found in the ticket', function () {
-        $user = actingAsVerifiedUser();
+        $user = actingAsSubscribedUser();
         $budget = Budget::factory()->for($user)->create([
             'amount' => 100,
         ]);
@@ -212,13 +233,13 @@ describe('TicketScanController — Error & Edge Cases', function () {
 
         $response->assertStatus(422)
             ->assertJsonPath('success', false)
-            ->assertJsonPath('message', 'No se encontraron productos con un importe mayor a 0 en el ticket.');
+            ->assertJsonPath('message', __('messages.ticket_scan_no_items'));
 
         expect(Expense::where('budget_id', $budget->id)->count())->toBe(0);
     });
 
     it('validates that image is required when scanning ticket', function () {
-        $user = actingAsVerifiedUser();
+        $user = actingAsSubscribedUser();
         $budget = Budget::factory()->for($user)->create();
 
         $this->from(route('budgets.show', $budget))
@@ -228,8 +249,8 @@ describe('TicketScanController — Error & Edge Cases', function () {
     });
 
     it('forbids users from scanning tickets in budgets owned by other users', function () {
-        $owner = actingAsVerifiedUser();
-        $otherUser = actingAsVerifiedUser();
+        $owner = actingAsSubscribedUser();
+        $otherUser = actingAsSubscribedUser();
         $budget = Budget::factory()->for($owner)->create();
 
         $file = UploadedFile::fake()->image('ticket.jpg');
@@ -243,7 +264,7 @@ describe('TicketScanController — Error & Edge Cases', function () {
     });
 
     it('rejects a PDF file with a validation error on the image field', function () {
-        $user = actingAsVerifiedUser();
+        $user = actingAsSubscribedUser();
         $budget = Budget::factory()->for($user)->create();
 
         $pdfFile = UploadedFile::fake()->create('receipt.pdf', 100, 'application/pdf');
@@ -255,7 +276,7 @@ describe('TicketScanController — Error & Edge Cases', function () {
     });
 
     it('rejects a plain text file with a validation error on the image field', function () {
-        $user = actingAsVerifiedUser();
+        $user = actingAsSubscribedUser();
         $budget = Budget::factory()->for($user)->create();
 
         $txtFile = UploadedFile::fake()->create('notes.txt', 1, 'text/plain');

@@ -53,7 +53,7 @@ function fakeBudgetAssistant(?string &$capturedPrompt = null, ?BudgetAssistant &
 
 describe('BudgetChatController — happy path', function () {
     it('returns a 200 for an authenticated owner with valid messages in parts format', function () {
-        $user = actingAsVerifiedUser();
+        $user = actingAsSubscribedUser();
         $budget = Budget::factory()->for($user)->create();
 
         $capturedPrompt = null;
@@ -71,7 +71,7 @@ describe('BudgetChatController — happy path', function () {
     });
 
     it('falls back to the content key when parts array is absent', function () {
-        $user = actingAsVerifiedUser();
+        $user = actingAsSubscribedUser();
         $budget = Budget::factory()->for($user)->create();
 
         $capturedPrompt = null;
@@ -87,7 +87,7 @@ describe('BudgetChatController — happy path', function () {
     });
 
     it('wires the budgetId from the route model binding onto the agent', function () {
-        $user = actingAsVerifiedUser();
+        $user = actingAsSubscribedUser();
         $budget = Budget::factory()->for($user)->create();
 
         $capturedAgent = null;
@@ -101,7 +101,7 @@ describe('BudgetChatController — happy path', function () {
     });
 
     it('builds a budgetContext string that contains the budget name, type, and formatted amount', function () {
-        $user = actingAsVerifiedUser();
+        $user = actingAsSubscribedUser();
         $budget = Budget::factory()->for($user)->create([
             'name' => 'Vacaciones Europa',
             'amount' => 1000,
@@ -121,7 +121,7 @@ describe('BudgetChatController — happy path', function () {
     });
 
     it('handles an empty messages payload without crashing', function () {
-        $user = actingAsVerifiedUser();
+        $user = actingAsSubscribedUser();
         $budget = Budget::factory()->for($user)->create();
 
         $this->instance(BudgetAssistant::class, fakeBudgetAssistant());
@@ -134,7 +134,7 @@ describe('BudgetChatController — happy path', function () {
 // Authentication & authorization
 // ---------------------------------------------------------------------------
 
-describe('BudgetChatController — authentication', function () {
+describe('BudgetChatController — authentication & subscription', function () {
     it('redirects guests to the login page', function () {
         $budget = Budget::factory()->create();
 
@@ -151,11 +151,21 @@ describe('BudgetChatController — authentication', function () {
             'messages' => [['content' => 'hola']],
         ])->assertRedirect(route('verification.notice'));
     });
+
+    it('redirects unsubscribed users to subscription manage page', function () {
+        $user = actingAsVerifiedUser();
+        $budget = Budget::factory()->for($user)->create();
+
+        $this->post(route('budgets.chat', $budget), [
+            'messages' => [['content' => 'hola']],
+        ])->assertRedirect(route('subscription.manage'))
+            ->assertSessionHas('error', 'You must be subscribed to access this feature.');
+    });
 });
 
 describe('BudgetChatController — authorization', function () {
     it('returns 403 when a regular user attempts to chat on another users budget', function () {
-        actingAsVerifiedUser();
+        actingAsSubscribedUser();
         $owner = createVerifiedUser();
         $budget = Budget::factory()->for($owner)->create();
 
@@ -167,7 +177,7 @@ describe('BudgetChatController — authorization', function () {
 
 describe('BudgetChatController — input validation', function () {
     it('returns 422 when the messages payload is empty and no prompt can be extracted', function () {
-        $user = actingAsVerifiedUser();
+        $user = actingAsSubscribedUser();
         $budget = Budget::factory()->for($user)->create();
 
         // No agent mock needed — guard fires before agent is called
@@ -177,7 +187,7 @@ describe('BudgetChatController — input validation', function () {
     });
 
     it('returns 422 when the last message has empty text parts', function () {
-        $user = actingAsVerifiedUser();
+        $user = actingAsSubscribedUser();
         $budget = Budget::factory()->for($user)->create();
 
         $this->postJson(route('budgets.chat', $budget), [

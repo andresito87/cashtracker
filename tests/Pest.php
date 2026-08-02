@@ -4,11 +4,21 @@ error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(LazilyRefreshDatabase::class)
     ->in('Feature', 'Unit');
+
+/**
+ * Custom expectation to assert that a given notification was sent to a notifiable entity.
+ */
+expect()->extend('toHaveBeenNotifiedOf', function (string $notification, ?callable $callback = null) {
+    Notification::assertSentTo($this->value, $notification, $callback);
+
+    return $this;
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -47,6 +57,28 @@ function actingAsVerifiedUser(array $attributes = []): User
 function actingAsUnverifiedUser(array $attributes = []): User
 {
     $user = createUnverifiedUser($attributes);
+
+    test()->actingAs($user);
+
+    return $user;
+}
+
+function actingAsSubscribedUser(array $attributes = []): User
+{
+    $user = createVerifiedUser($attributes);
+
+    $stripePrice = config('services.stripe.price_ai_monthly');
+
+    if (! $stripePrice) {
+        throw new RuntimeException('Missing config: services.stripe.price_ai_monthly. Set it in .env.testing or config/services.php.');
+    }
+
+    $user->subscriptions()->forceCreate([
+        'type' => 'default',
+        'stripe_id' => 'sub_test_'.uniqid(),
+        'stripe_status' => 'active',
+        'stripe_price' => $stripePrice,
+    ]);
 
     test()->actingAs($user);
 

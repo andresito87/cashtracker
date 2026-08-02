@@ -36,11 +36,11 @@ export const useTicketScan = ({budgetId, setMessages}: UseTicketScanOptions) => 
 			{
 				id: crypto.randomUUID(),
 				role: 'user',
-				content: `He subido un ticket de gasto.`,
+				content: t('ticket_scan_user_message'),
 				parts: [
 					{
 						type: 'text',
-						text: 'He subido un ticket de gasto. Por favor, extrae la información del gasto y crea un nuevo registro de gasto con los datos relevantes.'
+						text: t('ticket_scan_user_full_message'),
 					}
 				]
 			}
@@ -75,14 +75,14 @@ export const useTicketScan = ({budgetId, setMessages}: UseTicketScanOptions) => 
 			const data = await response.json().catch(() => null);
 
 			if (!response.ok || !data?.success) {
-				const errorMessage = data?.message || `Hubo un error al subir el ticket de gasto (${response.status}). Por favor, inténtalo de nuevo.`;
+				const errorMessage = data?.message || t('ticket_scan_error_http', {status: response.status.toString()});
 				handleError(errorMessage);
 				return;
 			}
 
 			toast.custom((tToast) => (
 				<Toast
-					message={t('expense_created') !== 'expense_created' ? t('expense_created') : 'Gasto añadido con éxito.'}
+					message={t('expense_created')}
 					type="success"
 					duration={4000}
 					visible={tToast.visible}
@@ -106,7 +106,7 @@ export const useTicketScan = ({budgetId, setMessages}: UseTicketScanOptions) => 
 
 		} catch (error) {
 			console.error('Unexpected error uploading file:', error);
-			handleError('Hubo un error de conexión al subir el ticket de gasto. Por favor, inténtalo de nuevo.');
+			handleError(t('ticket_scan_error_connection'));
 		} finally {
 			setIsUploadingTicket(false);
 			if (fileInputRef.current) fileInputRef.current.value = '';

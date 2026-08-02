@@ -71,7 +71,6 @@ return [
     'forgot_password' => '¿Olvidaste tu contraseña?',
     'sign_in' => 'Iniciar sesión',
     'sign_up' => 'Registrarse',
-    'status_uncompromised' => 'La contraseña ingresada ha aparecido en una filtración de datos. Por favor, elige otra.',
 
     /*
     |--------------------------------------------------------------------------
@@ -206,6 +205,16 @@ return [
     'agent_consult' => 'Consultar',
     'agent_thinking' => 'Pensando...',
     'agent_user_avatar' => 'TÚ',
+    'chat_budget_context' => 'Este presupuesto es de tipo \':type\' llamado \':name\' con un monto total de :amount. Los gastos tienen nombre, monto y categoría.',
+    'ticket_scan_prompt' => 'Lee este ticket de venta y extrae la información estructurada en JSON. Si la moneda del ticket difiere de :currency (:symbol), convierte cada importe a :currency (:symbol).',
+    'ticket_scan_no_items' => 'No se encontraron productos con un importe mayor a 0 en el ticket.',
+    'ticket_scan_exceeds_balance' => 'El total del ticket (:symbol:total) excede el saldo disponible en este presupuesto (:symbol:balance). No se registraron los gastos.',
+    'ticket_scan_user_message' => 'He subido un ticket de gasto.',
+    'ticket_scan_user_full_message' => 'He subido un ticket de gasto. Por favor, extrae la información del gasto y crea un nuevo registro de gasto con los datos relevantes.',
+    'ticket_scan_error_http' => 'Hubo un error al subir el ticket de gasto (:status). Por favor, inténtalo de nuevo.',
+    'ticket_scan_error_connection' => 'Hubo un error de conexión al subir el ticket de gasto. Por favor, inténtalo de nuevo.',
+    'ticket_scan_success' => 'Se registraron :count gastos del ticket:',
+    'ticket_scan_total' => 'Total: :symbol:total',
 
     /*
     |--------------------------------------------------------------------------
@@ -273,8 +282,38 @@ return [
     'cannot_downgrade_yearly' => 'No es posible cambiar del plan anual al mensual directamente. Puedes cancelar tu suscripción actual para cambiar al finalizar el periodo.',
     'subscription_canceled_success' => 'Suscripción cancelada con éxito.',
     'subscription_resumed_success' => 'Suscripción reanudada con éxito.',
+    'subscription_swapped' => 'Plan cambiado con éxito.',
     'billing_success_title' => '¡Pago Completado con Éxito!',
     'billing_success_subtitle' => 'Tu cuenta ha sido actualizada a PRO. Ya puedes disfrutar de todas las funcionalidades avanzadas.',
     'billing_cancel_title' => 'Pago Cancelado',
     'billing_cancel_subtitle' => 'No se ha realizado ningún cargo en tu cuenta. Puedes volver a intentarlo cuando desees.',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Account Settings & Profile
+    |--------------------------------------------------------------------------
+    */
+    'profile_tab' => 'Perfil',
+    'password_tab' => 'Contraseña',
+    'profile_settings_title' => 'Ajustes de Perfil',
+    'profile_settings_subtitle' => 'Modifica tu información personal y dirección de correo electrónico.',
+    'password_settings_title' => 'Cambiar Contraseña',
+    'password_settings_subtitle' => 'Asegúrate de utilizar una contraseña segura y larga para proteger tu cuenta.',
+    'save_changes' => 'Guardar Cambios',
+    'saving_changes' => 'Guardando...',
+    'update_password' => 'Actualizar Contraseña',
+    'updating_password' => 'Actualizando...',
+    'profile_updated' => 'Tu perfil ha sido actualizado con éxito.',
+    'password_updated' => 'Tu contraseña ha sido actualizada con éxito.',
+    'current_password_label' => 'Contraseña Actual',
+    'current_password_placeholder' => 'Tu contraseña actual',
+    'new_password_label' => 'Nueva Contraseña',
+    'new_password_placeholder' => 'Mín. 8 caracteres',
+    'confirm_password_label' => 'Confirmar Nueva Contraseña',
+    'email_verification_notice' => 'Si cambias tu correo electrónico, deberás volver a verificar tu cuenta.',
+    'validation_current_password_required' => 'Debes ingresar tu contraseña actual.',
+    'validation_current_password_invalid' => 'La contraseña actual es incorrecta.',
+    'validation_password_required' => 'La nueva contraseña es obligatoria.',
+    'validation_name_max' => 'El nombre no debe exceder los 100 caracteres.',
+    'validation_email_max' => 'El email no debe exceder los 254 caracteres.',
 ];

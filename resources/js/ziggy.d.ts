@@ -34,8 +34,6 @@ declare module 'ziggy-js' {
 		],
 		"verification.send": [],
 		"dashboard": [],
-		"settings": [],
-		"password.edit": [],
 		"admin.dashboard": [],
 		"budgets.index": [],
 		"budgets.create": [],
@@ -89,20 +87,6 @@ declare module 'ziggy-js' {
 				"binding": "id"
 			}
 		],
-		"budgets.chat": [
-			{
-				"name": "budget",
-				"required": true,
-				"binding": "id"
-			}
-		],
-		"budgets.scan-ticket": [
-			{
-				"name": "budget",
-				"required": true,
-				"binding": "id"
-			}
-		],
 		"subscription.checkout": [
 			{
 				"name": "plan",
@@ -119,8 +103,27 @@ declare module 'ziggy-js' {
 		],
 		"subscription.cancel": [],
 		"subscription.resume": [],
+		"billing": [],
 		"billing.success": [],
 		"billing.cancel": [],
+		"budgets.chat": [
+			{
+				"name": "budget",
+				"required": true,
+				"binding": "id"
+			}
+		],
+		"budgets.scan-ticket": [
+			{
+				"name": "budget",
+				"required": true,
+				"binding": "id"
+			}
+		],
+		"settings.profile": [],
+		"settings.profile.update": [],
+		"settings.password": [],
+		"settings.password.update": [],
 		"storage.local": [
 			{
 				"name": "path",

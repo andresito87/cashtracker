@@ -7,8 +7,10 @@ import {formatDate} from '@/utils/formatDate'
 import {formatCurrency} from '@/utils/formatCurrency'
 import {ConfirmDeleteModal} from '@/Components/ConfirmDeleteModal'
 import {ExpenseModal} from '@/Components/ExpenseModal'
+import {BudgetModal} from '@/Components/BudgetModal'
 import {ProgressBar} from '@/Components/ProgressBar'
 import {useExpenseModalStore} from '@/store/expense-modal-store'
+import {useBudgetModalStore} from '@/store/budget-modal-store'
 import {Category} from "@/types/Category"
 import {getCategoryMeta} from '@/constants/category-config'
 import {CashTrackerAgent} from "@/Components/CashTrackerAgent";
@@ -23,6 +25,7 @@ export const Show = ({budget, categories}: ShowProps) => {
 	const {auth} = usePage<SharedData>().props
 	const {t, locale} = useTranslation()
 	const {openModal, setBudget, setCategories} = useExpenseModalStore()
+	const {openModal: openBudgetModal} = useBudgetModalStore()
 
 	useEffect(() => {
 		setBudget(budget)
@@ -123,8 +126,9 @@ export const Show = ({budget, categories}: ShowProps) => {
 							</div>
 
 							<div className="flex items-center gap-3">
-								<Link
-									href={route('budgets.edit', budget.id)}
+								<button
+									type="button"
+									onClick={() => openBudgetModal(budget)}
 									className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-slate-50 text-gray-800 font-extrabold text-xs sm:text-sm shadow-xs hover:border-gray-300 transition-all duration-200 active:scale-95 inline-flex items-center gap-2 shrink-0 cursor-pointer"
 								>
 									<svg
@@ -142,7 +146,7 @@ export const Show = ({budget, categories}: ShowProps) => {
 										/>
 									</svg>
 									<span>{t('edit')}</span>
-								</Link>
+								</button>
 
 								<button
 									type="button"
@@ -347,6 +351,9 @@ export const Show = ({budget, categories}: ShowProps) => {
 
 					{/* Expense Modal connected via Zustand store */}
 					<ExpenseModal/>
+
+					{/* Budget Edit Modal connected via Zustand store */}
+					<BudgetModal/>
 				</div>
 			</div>
 		</>
