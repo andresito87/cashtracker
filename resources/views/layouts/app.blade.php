@@ -34,18 +34,7 @@
 				<x-user-menu/>
 
 				<!-- Language Switcher -->
-				<a href="{{ request()->fullUrlWithQuery(['lang' => app()->getLocale() === 'es' ? 'en' : 'es']) }}"
-				   class="flex items-center bg-[#13082a] p-0.5 sm:p-1 rounded-full border border-purple-500/40 shrink-0 shadow-inner hover:border-purple-400/70 transition-all duration-200 cursor-pointer"
-				   title="{{ app()->getLocale() === 'es' ? __('messages.switch_to_english') : __('messages.switch_to_spanish') }}">
-					<span
-						class="px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 {{ app()->getLocale() === 'es' ? 'bg-purple-600/60 text-white shadow-sm' : 'text-purple-300/50' }}">
-						ES
-					</span>
-					<span
-						class="px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 {{ app()->getLocale() === 'en' ? 'bg-purple-600/60 text-white shadow-sm' : 'text-purple-300/50' }}">
-						EN
-					</span>
-				</a>
+				@include('components.lang-switcher')
 			</div>
 		</div>
 	</div>

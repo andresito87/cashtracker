@@ -86,6 +86,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Available Locales Whitelist
+    |--------------------------------------------------------------------------
+    |
+    | The single source of truth for the locales the application accepts.
+    | SetLocale middleware, Inertia shared props, the Blade language switcher,
+    | and the frontend INTL locale map all derive from this list. Add a new
+    | language by extending this array and shipping the translation files.
+    |
+    */
+
+    'available_locales' => ['en', 'es'],
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |

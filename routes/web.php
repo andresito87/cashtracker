@@ -1,11 +1,11 @@
 <?php
 
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\BudgetChatController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\ExpenseController;
-use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TicketScanController;
 use App\Http\Controllers\UpdatePasswordController;
@@ -20,8 +20,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
-
-Route::get('/lang/{locale}', [LanguageController::class, 'switch'])->name('lang.switch');
 
 /*
 |--------------------------------------------------------------------------
@@ -42,6 +40,9 @@ Route::prefix('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])
         ->middleware('auth')
         ->name('logout');
+
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'index'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'store'])->name('password.email');
 });
 
 /*

@@ -22,4 +22,6 @@ export interface SharedData extends InertiaPageProps {
 		messages?: Record<string, string>
 	}
 	locale?: string
+	available_locales?: string[]
+	default_locale?: string
 }

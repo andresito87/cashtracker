@@ -21,12 +21,13 @@
 			/>
 		</div>
 
-		<x-input-error :messages="$errors->get('email')" />
+		<x-input-error :messages="$errors->get('email')"/>
 
 		<div class="flex flex-col gap-2">
 			<div class="flex items-center justify-between">
 				<label class="font-bold text-2xl" for="password">{{ __('messages.password') }}</label>
-				<a href="#" class="text-indigo-950" tabindex="3">{{ __('messages.forgot_password') }}</a>
+				<a href="{{ route('password.request') }}" class="text-indigo-950"
+				   tabindex="3">{{ __('messages.forgot_password') }}</a>
 			</div>
 			<input
 				id="password"
@@ -38,10 +39,10 @@
 			/>
 		</div>
 
-		<x-input-error :messages="$errors->get('password')" />
+		<x-input-error :messages="$errors->get('password')"/>
 
 		@error('login')
-		<x-alert type="error" :message="$message" />
+		<x-alert type="error" :message="$message"/>
 		@enderror
 
 		<button

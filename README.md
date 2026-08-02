@@ -107,7 +107,6 @@ Below is the routing architecture for budgets, expenses, ticket scanning, and PR
 | `GET`       | `/email/verify`                    | `verification.notice`      | `Closure`                               | Email verification notice                           |
 | `GET`       | `/verify-email/{id}/{hash}`        | `verification.verify`      | `RegisterController@verifyEmail`        | Verify email via signed URL                         |
 | `POST`      | `/email/verification-notification` | `verification.send`        | `RegisterController@resendVerification` | Resend verification email                           |
-| `GET`       | `/lang/{locale}`                   | `lang.switch`              | `LanguageController@switch`             | Switch application language                         |
 | `GET`       | `/settings/profile`                | `settings.profile`         | `UpdateProfileController@edit`          | User profile settings page (Inertia React)          |
 | `PUT`       | `/settings/profile`                | `settings.profile.update`  | `UpdateProfileController@update`        | Update user name and email                          |
 | `GET`       | `/settings/password`               | `settings.password`        | `UpdatePasswordController@edit`         | Password change settings page (Inertia React)       |
@@ -118,10 +117,12 @@ Below is the routing architecture for budgets, expenses, ticket scanning, and PR
 
 * **Single Round trip Switcher:** Changing languages uses a query parameter optimization (`?lang=`). The system detects
   the language, updates the session, and renders the translated page in a single HTTP request-response cycle (avoiding
-  standard double redirection latency).
-* **Header Capsule Switcher:** A right-aligned, sleek capsule switcher (`ES | EN`) with active state highlight pills and
-  defined border boundaries. It acts as a single toggle link pointing to the alternative language to prevent redundant
-  page reloads on the active state.
+  standard double redirection latency). There is no dedicated route; the `?lang=` query parameter is accepted by every
+  GET request and is honored by the `SetLocale` middleware against the `config('app.available_locales')` whitelist.
+* **Header Capsule Switcher:** A right-aligned capsule switcher (`ES | EN`) with active state highlight pills, rendered
+  by the shared `resources/views/components/lang-switcher.blade.php` partial. It exposes one anchor per entry in
+  `config('app.available_locales')`, so adding a language to the config is all that is required to surface it in every
+  layout (`base`, `app`, `inertia`).
 * **Session Locale Persistence on Logout:** The system backs up the user's selected locale key before invalidating the
   session during logout, rewriting it into the newly regenerated session so the login page maintains their preferred
   language.

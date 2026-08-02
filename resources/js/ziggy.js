@@ -4,12 +4,13 @@ const Ziggy = {
 		"cashier.payment": {"uri": "stripe\/payment\/{id}", "methods": ["GET", "HEAD"], "parameters": ["id"]},
 		"cashier.webhook": {"uri": "stripe\/webhook", "methods": ["POST"]},
 		"welcome": {"uri": "\/", "methods": ["GET", "HEAD"]},
-		"lang.switch": {"uri": "lang\/{locale}", "methods": ["GET", "HEAD"], "parameters": ["locale"]},
 		"register": {"uri": "auth\/register", "methods": ["GET", "HEAD"]},
 		"register.store": {"uri": "auth\/register", "methods": ["POST"]},
 		"login": {"uri": "auth\/login", "methods": ["GET", "HEAD"]},
 		"login.store": {"uri": "auth\/login", "methods": ["POST"]},
 		"logout": {"uri": "auth\/logout", "methods": ["POST"]},
+		"password.request": {"uri": "auth\/forgot-password", "methods": ["GET", "HEAD"]},
+		"password.email": {"uri": "auth\/forgot-password", "methods": ["POST"]},
 		"verification.notice": {"uri": "email\/verify", "methods": ["GET", "HEAD"]},
 		"verification.verify": {
 			"uri": "verify-email\/{id}\/{hash}", "methods": ["GET", "HEAD"], "parameters": ["id", "hash"]

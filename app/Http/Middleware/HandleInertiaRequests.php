@@ -95,6 +95,8 @@ class HandleInertiaRequests extends Middleware
                 'messages' => __('messages'),
             ],
             'locale' => app()->getLocale(),
+            'available_locales' => config('app.available_locales'),
+            'default_locale' => config('app.locale'),
         ];
     }
 }

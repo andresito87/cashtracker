@@ -10,17 +10,13 @@ declare module 'ziggy-js' {
 		],
 		"cashier.webhook": [],
 		"welcome": [],
-		"lang.switch": [
-			{
-				"name": "locale",
-				"required": true
-			}
-		],
 		"register": [],
 		"register.store": [],
 		"login": [],
 		"login.store": [],
 		"logout": [],
+		"password.request": [],
+		"password.email": [],
 		"verification.notice": [],
 		"verification.verify": [
 			{

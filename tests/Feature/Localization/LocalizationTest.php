@@ -16,21 +16,6 @@ it('can switch languages via query parameter and persists in session', function 
     expect(app()->getLocale())->toBe('en');
 });
 
-it('switches locale through the language route', function () {
-    $this->from('/')
-        ->get(route('lang.switch', ['locale' => 'es']))
-        ->assertRedirect('/')
-        ->assertSessionHas('locale', 'es');
-});
-
-it('ignores unsupported locales in the language route', function () {
-    $this->from('/')
-        ->get(route('lang.switch', ['locale' => 'fr']))
-        ->assertRedirect('/');
-
-    expect(session('locale'))->toBeNull();
-});
-
 it('loads dashboard in different languages', function () {
     $user = createVerifiedUser();
 
@@ -89,4 +74,24 @@ it('preserves locale in session after logging out', function () {
     app()->setLocale('es');
     $this->get(route('login'))
         ->assertSee(__('messages.sign_in'));
+});
+
+it('shares the locale whitelist and default locale with every Inertia page', function () {
+    $user = createVerifiedUser();
+
+    $this->actingAs($user)->get(route('dashboard'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('available_locales', config('app.available_locales'))
+            ->where('default_locale', config('app.locale'))
+        );
+});
+
+it('shares the locale whitelist as a plain array with the keys from config', function () {
+    $user = createVerifiedUser();
+
+    $this->actingAs($user)->get(route('dashboard'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('available_locales', ['en', 'es'])
+            ->where('default_locale', config('app.locale', 'en'))
+        );
 });
