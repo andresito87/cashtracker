@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Currency;
+use App\Notifications\ResetPassword;
 use App\Notifications\VerifyEmail;
 use Carbon\Carbon;
 use Database\Factories\UserFactory;
@@ -17,7 +18,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Password;
 use Laravel\Cashier\Billable;
+use SensitiveParameter;
 
 /**
  * @property int $id
@@ -42,6 +45,20 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use Billable, HasFactory, Notifiable;
+
+    /**
+     * Send the branded password reset notification dispatched by the broker.
+     *
+     * Overrides the inherited {@see CanResetPassword} trait method so that
+     * {@see Password::sendResetLink()} notifies the
+     * user with the application's branded reset-link mail.
+     *
+     * @param  string  $token
+     */
+    public function sendPasswordResetNotification(#[SensitiveParameter] $token): void
+    {
+        $this->notify(new ResetPassword($token));
+    }
 
     public function sendEmailVerificationNotification(): void
     {

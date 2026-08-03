@@ -13,6 +13,9 @@ return [
     |
     */
 
+    // The default queue connection is 'database'. The VerifyEmail and ResetPassword
+    // notifications implement ShouldQueue, so a running queue worker
+    // (php artisan queue:work or queue:listen) is required to deliver them.
     'default' => env('QUEUE_CONNECTION', 'database'),
 
     /*

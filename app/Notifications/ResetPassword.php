@@ -9,9 +9,18 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\HtmlString;
 
-class VerifyEmail extends Notification implements ShouldQueue
+/**
+ * Branded password-reset-link notification dispatched through the password
+ * broker when a user requests a reset link.
+ *
+ * The action button is rendered as an inline-styled HTML link so the brand
+ * purple (#4C1D95) applies regardless of the configured Markdown mail theme.
+ */
+class ResetPassword extends Notification implements ShouldQueue
 {
     use Queueable;
+
+    public function __construct(private readonly string $token) {}
 
     /**
      * Get the notification's delivery channels.
@@ -30,30 +39,30 @@ class VerifyEmail extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
+        $resetUrl = URL::temporarySignedRoute(
+            'password.reset',
             now()->addMinutes(60),
             [
-                'id' => $notifiable->getKey(),
-                'hash' => sha1($notifiable->getEmailForVerification()),
+                'token' => $this->token,
+                'email' => $notifiable->email,
             ]
         );
 
-        $actionLabel = __('messages.email_verify_action');
+        $actionLabel = __('messages.passwords.mail.action');
 
         $button = new HtmlString(
-            '<a href="'.e($verificationUrl)
+            '<a href="'.e($resetUrl)
             .'" style="display:inline-block;padding:12px 24px;background:#4C1D95;color:#ffffff;'
             .'text-decoration:none;border-radius:6px;font-weight:bold;font-size:16px;'
             .'">'.$actionLabel.'</a>'
         );
 
         return (new MailMessage)
-            ->subject(__('messages.email_verify_subject'))
-            ->greeting(__('messages.email_verify_greeting'))
-            ->line(__('messages.email_verify_intro'))
+            ->subject(__('messages.passwords.mail.subject'))
+            ->greeting(__('messages.passwords.mail.greeting'))
+            ->line(__('messages.passwords.mail.intro'))
             ->line($button)
-            ->line(__('messages.email_verify_disclaimer'))
-            ->salutation(__('messages.email_verify_salutation'));
+            ->line(__('messages.passwords.mail.disclaimer'))
+            ->salutation(__('messages.passwords.mail.salutation'));
     }
 }

@@ -316,4 +316,38 @@ return [
     'validation_password_required' => 'The new password is required.',
     'validation_name_max' => 'The name may not be greater than 100 characters.',
     'validation_email_max' => 'The email may not be greater than 254 characters.',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Password Reset
+    |--------------------------------------------------------------------------
+    */
+    'passwords.forgot.title' => 'Forgot your password?',
+    'passwords.forgot.subtitle' => 'Enter your email address and we\'ll send you a link to reset your password.',
+    'passwords.forgot.email_label' => 'Email',
+    'passwords.forgot.email_placeholder' => 'Enter your email address',
+    'passwords.forgot.submit' => 'Send Reset Link',
+    'passwords.forgot.back_to_login' => 'Back to sign in',
+    'passwords.sent' => 'If the email address you entered is registered, you will receive a password reset link shortly.',
+    'passwords.reset.title' => 'Reset your password',
+    'passwords.reset.subtitle' => 'Choose a new, strong password for your account.',
+    'passwords.reset.email_label' => 'Email',
+    'passwords.reset.password_label' => 'New Password',
+    'passwords.reset.password_placeholder' => 'Min. 8 characters',
+    'passwords.reset.password_confirmation_label' => 'Confirm New Password',
+    'passwords.reset.submit' => 'Reset Password',
+    'passwords.reset.back_to_login' => 'Back to sign in',
+    'passwords.reset_success' => 'Your password has been reset successfully.',
+    'passwords.reset_failed' => 'The password reset link is invalid or has expired. Please request a new one.',
+    'passwords.validation.email_required' => 'Please enter your email address.',
+    'passwords.validation.email_email' => 'Please enter a valid email address.',
+    'passwords.validation.password_required' => 'Please enter a new password.',
+    'passwords.validation.password_confirmation_required' => 'Please confirm your new password.',
+    'passwords.validation.token_required' => 'The reset token is missing.',
+    'passwords.mail.subject' => 'Reset your CashTracker password',
+    'passwords.mail.greeting' => 'Hello!',
+    'passwords.mail.intro' => 'You are receiving this email because we received a password reset request for your account.',
+    'passwords.mail.action' => 'Reset Password',
+    'passwords.mail.disclaimer' => 'This password reset link will expire in 60 minutes. If you did not request a password reset, no further action is required.',
+    'passwords.mail.salutation' => 'Regards, the CashTracker team',
 ];

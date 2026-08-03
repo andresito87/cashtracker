@@ -25,7 +25,7 @@ export const Manage = ({subscription}: ManageProps) => {
 
 	return (
 		<>
-			<Head title={`CashTracker - ${t('manage_subscription_title')}`}/>
+			<Head title={t('manage_subscription_title')}/>
 
 			<div className="min-h-[calc(100vh-64px)] sm:min-h-[calc(100vh-80px)] bg-slate-50/70 p-6 sm:p-10">
 				<div className="max-w-4xl mx-auto">

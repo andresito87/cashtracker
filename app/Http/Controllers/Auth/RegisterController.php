@@ -55,6 +55,10 @@ class RegisterController extends Controller
 
     public function resendVerification(Request $request): RedirectResponse
     {
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect()->route('dashboard');
+        }
+
         $request->user()->sendEmailVerificationNotification();
 
         return back()->with('status', 'verification-link-sent');

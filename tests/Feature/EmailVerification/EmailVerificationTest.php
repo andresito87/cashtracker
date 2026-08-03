@@ -83,3 +83,15 @@ it('shows the verification notice page in Spanish for unverified users', functio
         ->assertSuccessful()
         ->assertSee(__('messages.verify_email'));
 });
+
+it('does not resend the verification notification to an already verified user', function () {
+    Notification::fake();
+
+    actingAsVerifiedUser();
+
+    $this->from(route('verification.notice'))
+        ->post(route('verification.send'))
+        ->assertRedirect(route('dashboard'));
+
+    Notification::assertNothingSent();
+});

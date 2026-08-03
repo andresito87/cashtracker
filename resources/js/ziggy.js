@@ -11,6 +11,8 @@ const Ziggy = {
 		"logout": {"uri": "auth\/logout", "methods": ["POST"]},
 		"password.request": {"uri": "auth\/forgot-password", "methods": ["GET", "HEAD"]},
 		"password.email": {"uri": "auth\/forgot-password", "methods": ["POST"]},
+		"password.reset": {"uri": "auth\/reset-password\/{token}", "methods": ["GET", "HEAD"], "parameters": ["token"]},
+		"password.update": {"uri": "auth\/reset-password", "methods": ["POST"]},
 		"verification.notice": {"uri": "email\/verify", "methods": ["GET", "HEAD"]},
 		"verification.verify": {
 			"uri": "verify-email\/{id}\/{hash}", "methods": ["GET", "HEAD"], "parameters": ["id", "hash"]

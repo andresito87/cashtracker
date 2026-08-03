@@ -12,7 +12,7 @@ class ForgotPasswordRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,21 +23,25 @@ class ForgotPasswordRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' => 'El correo electrónico es obligatorio.',
-            'email.email' => 'Ingresa un correo electrónico válido.',
-            'email.exists' => 'No encontramos una cuenta con ese correo electrónico.',
+            'email.required' => __('messages.passwords.validation.email_required'),
+            'email.email' => __('messages.passwords.validation.email_email'),
         ];
     }
 
     /**
      * Get the validation rules that apply to the request.
      *
+     * The `exists:users,email` rule is intentionally omitted to avoid leaking
+     * which email addresses are registered through the validation layer. The
+     * controller flashes the same generic status regardless of whether a user
+     * was found, so enumeration is not possible through this endpoint.
+     *
      * @return array<string, ValidationRule|array|string>
      */
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email', 'exists:users,email'],
+            'email' => ['required', 'email'],
         ];
     }
 }

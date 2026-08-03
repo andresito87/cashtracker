@@ -316,4 +316,38 @@ return [
     'validation_password_required' => 'La nueva contraseña es obligatoria.',
     'validation_name_max' => 'El nombre no debe exceder los 100 caracteres.',
     'validation_email_max' => 'El email no debe exceder los 254 caracteres.',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Password Reset
+    |--------------------------------------------------------------------------
+    */
+    'passwords.forgot.title' => '¿Olvidaste tu contraseña?',
+    'passwords.forgot.subtitle' => 'Ingresa tu correo electrónico y te enviaremos un enlace para restablecerla.',
+    'passwords.forgot.email_label' => 'Correo electrónico',
+    'passwords.forgot.email_placeholder' => 'Ingresa tu correo electrónico',
+    'passwords.forgot.submit' => 'Enviar Instrucciones',
+    'passwords.forgot.back_to_login' => 'Volver a iniciar sesión',
+    'passwords.sent' => 'Si el correo ingresado está registrado, recibirás un enlace para restablecer tu contraseña en breve.',
+    'passwords.reset.title' => 'Restablecer contraseña',
+    'passwords.reset.subtitle' => 'Elige una contraseña nueva y segura para tu cuenta.',
+    'passwords.reset.email_label' => 'Correo electrónico',
+    'passwords.reset.password_label' => 'Nueva Contraseña',
+    'passwords.reset.password_placeholder' => 'Mín. 8 caracteres',
+    'passwords.reset.password_confirmation_label' => 'Confirmar Nueva Contraseña',
+    'passwords.reset.submit' => 'Restablecer Contraseña',
+    'passwords.reset.back_to_login' => 'Volver a iniciar sesión',
+    'passwords.reset_success' => 'Tu contraseña ha sido restablecida con éxito.',
+    'passwords.reset_failed' => 'El enlace para restablecer la contraseña no es válido o ha expirado. Por favor, solicita uno nuevo.',
+    'passwords.validation.email_required' => 'Ingresa tu correo electrónico.',
+    'passwords.validation.email_email' => 'Ingresa un correo electrónico válido.',
+    'passwords.validation.password_required' => 'Ingresa una nueva contraseña.',
+    'passwords.validation.password_confirmation_required' => 'Confirma tu nueva contraseña.',
+    'passwords.validation.token_required' => 'Falta el token de restablecimiento.',
+    'passwords.mail.subject' => 'Restablece tu contraseña de CashTracker',
+    'passwords.mail.greeting' => '¡Hola!',
+    'passwords.mail.intro' => 'Recibiste este correo porque solicitaste restablecer la contraseña de tu cuenta.',
+    'passwords.mail.action' => 'Restablecer Contraseña',
+    'passwords.mail.disclaimer' => 'Este enlace expirará en 60 minutos. Si no solicitaste este cambio, puedes ignorar este mensaje.',
+    'passwords.mail.salutation' => 'Saludos, el equipo de CashTracker',
 ];

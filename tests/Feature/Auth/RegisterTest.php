@@ -4,6 +4,7 @@ use App\Enums\Currency;
 use App\Models\User;
 use App\Notifications\VerifyEmail;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Mail\Transport\ArrayTransport;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 
@@ -102,9 +103,14 @@ it('completes the full registration to email verification and dashboard access f
     /** @noinspection PhpUnhandledExceptionInspection */
     Notification::assertSentTo($user, VerifyEmail::class, function (VerifyEmail $notification) use ($user) {
         $mail = $notification->toMail($user);
+        $rendered = (string) $mail->render();
+
+        // Extract the verification URL from the CTA button
+        preg_match('/href="([^"]+verify-email[^"]+)"/', $rendered, $matches);
+        $verificationUrl = html_entity_decode($matches[1]);
 
         $this->actingAs($user)
-            ->get($mail->actionUrl)
+            ->get($verificationUrl)
             ->assertRedirect(route('dashboard'));
 
         return true;
@@ -116,4 +122,22 @@ it('completes the full registration to email verification and dashboard access f
     $this->actingAs($user)
         ->get(route('dashboard'))
         ->assertSuccessful();
+});
+
+it('renders the verification email through the real mail channel on registration', function () {
+    config(['mail.default' => 'array']);
+
+    $this->post(route('register.store'), validRegistrationPayload([
+        'email' => 'array-channel@example.com',
+    ]))->assertRedirect(route('verification.notice'));
+
+    $transport = app('mail.manager')->mailer()->getSymfonyTransport();
+    assert($transport instanceof ArrayTransport);
+    $messages = $transport->messages();
+    expect($messages)->not->toBeEmpty();
+
+    $rendered = str_replace("=\r\n", '', $messages->first()->toString());
+    expect($rendered)->toContain('Subject: '.__('messages.email_verify_subject'))
+        ->and($rendered)->toContain('To: array-channel@example.com')
+        ->and($rendered)->toContain('/verify-email/');
 });
