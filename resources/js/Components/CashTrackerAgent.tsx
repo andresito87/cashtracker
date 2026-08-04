@@ -20,6 +20,9 @@ export const CashTrackerAgent = ({budgetId}: Props) => {
 	const {sendMessage, messages, status, setMessages} = useChat({
 		transport: new DefaultChatTransport({
 			api: `/budgets/${budgetId}/chat`,
+			headers: {
+				'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '',
+			},
 		}),
 		onFinish: ({message}) => {
 			const expenseCreated = message.parts.find((part) => {
