@@ -5,10 +5,14 @@ namespace App\Ai\Tools;
 use App\Enums\ExpenseCategory;
 use App\Models\Budget;
 use App\Models\Expense;
+use App\Services\ExpenseOverspendException;
+use App\Services\ExpenseService;
+use App\Support\InvalidMoney;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
 use Stringable;
+use Throwable;
 
 class AddExpense implements Tool
 {
@@ -41,8 +45,6 @@ class AddExpense implements Tool
             return '[EXPENSE_ERROR] El monto debe ser un número positivo mayor que cero.';
         }
 
-        $amount = (float) $rawAmount;
-
         // Security: Validate budget ownership
         $budget = Budget::where('user_id', auth()->id())->find($this->budgetId);
         if (! $budget) {
@@ -50,17 +52,6 @@ class AddExpense implements Tool
         }
 
         $symbol = $budget->user?->currency?->symbol() ?? '€';
-
-        // Business rule: Check if amount exceeds remaining budget balance
-        $currentSpent = (float) $budget->expenses()->sum('amount');
-        $remainingBalance = (float) $budget->amount - $currentSpent;
-
-        if ($amount > $remainingBalance) {
-            $formattedRemaining = number_format(max(0, $remainingBalance), 2);
-            $formattedAmount = number_format($amount, 2);
-
-            return "[EXPENSE_ERROR] El monto de $formattedAmount$symbol excede el saldo disponible en este presupuesto ($formattedRemaining$symbol). No se realizó ningún cargo.";
-        }
 
         // Validate and map category enum
         $categoryInput = strtolower(trim((string) ($request['category'] ?? '')));
@@ -70,13 +61,27 @@ class AddExpense implements Tool
             $categoryEnum = ExpenseCategory::Other;
         }
 
-        /** @var Expense $expense */
-        $expense = Expense::create([
-            'budget_id' => $budget->id,
-            'name' => $name,
-            'amount' => $amount,
-            'category' => $categoryEnum,
-        ]);
+        try {
+            /** @var Expense $expense */
+            $expense = app(ExpenseService::class)->create($budget, [
+                'name' => $name,
+                'amount' => (string) $rawAmount,
+                'category' => $categoryEnum,
+            ]);
+        } catch (InvalidMoney $e) {
+            return '[EXPENSE_ERROR] '.$e->getMessage();
+        } catch (ExpenseOverspendException) {
+            $currentSpent = (float) $budget->expenses()->sum('amount');
+            $remainingBalance = max(0, (float) $budget->amount - $currentSpent);
+            $formattedRemaining = number_format($remainingBalance, 2);
+            $formattedAmount = number_format((float) $rawAmount, 2);
+
+            return "[EXPENSE_ERROR] El monto de $formattedAmount$symbol excede el saldo disponible en este presupuesto ($formattedRemaining$symbol). No se realizó ningún cargo.";
+        } catch (Throwable $e) {
+            report($e);
+
+            return '[EXPENSE_ERROR] Ocurrió un error inesperado al agregar el gasto. Intenta nuevamente.';
+        }
 
         $catLabel = $expense->categoryLabel();
 

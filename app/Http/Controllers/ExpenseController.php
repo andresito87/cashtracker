@@ -5,19 +5,31 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ExpenseRequest;
 use App\Models\Budget;
 use App\Models\Expense;
+use App\Services\ExpenseOverspendException;
+use App\Services\ExpenseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class ExpenseController extends Controller
 {
     /**
      * Store a newly created expense in storage for a budget.
+     *
+     * @throws ValidationException|Throwable
      */
     public function store(ExpenseRequest $request, Budget $budget): RedirectResponse
     {
         Gate::authorize('create', [Expense::class, $budget]);
 
-        $budget->expenses()->create($request->validated());
+        try {
+            app(ExpenseService::class)->create($budget, $request->validated());
+        } catch (ExpenseOverspendException) {
+            throw ValidationException::withMessages([
+                'amount' => __('messages.validation_amount_exceeds_balance'),
+            ]);
+        }
 
         return redirect()
             ->back()
@@ -29,12 +41,20 @@ class ExpenseController extends Controller
 
     /**
      * Update the specified expense in storage.
+     *
+     * @throws ValidationException|Throwable
      */
     public function update(ExpenseRequest $request, Expense $expense): RedirectResponse
     {
         Gate::authorize('update', $expense);
 
-        $expense->update($request->validated());
+        try {
+            app(ExpenseService::class)->update($expense, $request->validated());
+        } catch (ExpenseOverspendException) {
+            throw ValidationException::withMessages([
+                'amount' => __('messages.validation_amount_exceeds_balance'),
+            ]);
+        }
 
         return redirect()
             ->back()
@@ -51,7 +71,7 @@ class ExpenseController extends Controller
     {
         Gate::authorize('delete', $expense);
 
-        $expense->delete();
+        app(ExpenseService::class)->delete($expense);
 
         return redirect()
             ->back()

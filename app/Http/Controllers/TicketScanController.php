@@ -6,17 +6,16 @@ use App\Ai\Agents\TicketScanner;
 use App\Enums\Currency;
 use App\Enums\ExpenseCategory;
 use App\Models\Budget;
+use App\Models\Expense;
+use App\Services\ExpenseOverspendException;
+use App\Services\ExpenseService;
+use App\Support\MoneyAmount;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Laravel\Ai\Files;
-use Throwable;
 
 class TicketScanController extends Controller
 {
-    /**
-     * @throws Throwable
-     */
     public function store(Request $request, Budget $budget)
     {
         Gate::authorize('update', $budget);
@@ -55,39 +54,39 @@ class TicketScanController extends Controller
             ], status: 422);
         }
 
-        $ticketTotal = (float) array_sum(array_column($items, 'amount'));
-        $currentTotalSpent = (float) $budget->expenses()->sum('amount');
-        $availableBalance = max(0, (float) $budget->amount - $currentTotalSpent);
-
-        if ($ticketTotal > $availableBalance) {
+        try {
+            $created = $this->createExpenses(
+                $budget,
+                $response['store'],
+                $response['category'],
+                $items
+            );
+        } catch (ExpenseOverspendException) {
             $symbol = $userCurrency->symbol();
-            $formattedTotal = number_format($ticketTotal, 2);
-            $formattedBalance = number_format($availableBalance, 2);
+            $ticketTotal = array_sum(array_map(
+                fn ($item) => MoneyAmount::fromString((string) $item['amount'])->cents(),
+                $items,
+            )) / 100;
+            $currentTotalSpent = (float) $budget->expenses()->sum('amount');
+            $availableBalance = max(0, (float) $budget->amount - $currentTotalSpent);
 
             return response()->json([
                 'success' => false,
                 'message' => __('messages.ticket_scan_exceeds_balance', [
                     'symbol' => $symbol,
-                    'total' => $formattedTotal,
-                    'balance' => $formattedBalance,
+                    'total' => number_format($ticketTotal, 2),
+                    'balance' => number_format($availableBalance, 2),
                 ]),
             ], status: 422);
         }
 
-        return response()->json(
-            $this->createExpenses(
-                $budget,
-                $response['store'],
-                $response['category'],
-                $items
-            )
-        );
+        return response()->json($created);
     }
 
     /**
-     * Create expenses from ticket scan results
+     * Create expenses from ticket scan results through the locked service.
      *
-     * @throws Throwable
+     * @throws ExpenseOverspendException
      */
     private function createExpenses(Budget $budget, string $store, string $category, array $items): array
     {
@@ -97,18 +96,16 @@ class TicketScanController extends Controller
 
         $rows = array_map(fn ($item) => [
             'name' => $store.' - '.$item['name'],
-            'amount' => $item['amount'],
-            'category' => $categoryEnum->value,
+            'amount' => (string) $item['amount'],
+            'category' => $categoryEnum,
         ], $items);
 
-        DB::transaction(fn () => $budget->expenses()->createMany($rows));
+        $expenses = app(ExpenseService::class)->createMany($budget, $rows);
 
-        $created = array_map(
-            fn ($row) => '- '.$row['name'].': '.$symbol.number_format((float) $row['amount'], 2).' ('.$catLabel.')',
-            $rows
-        );
+        $created = $expenses->map(fn (Expense $expense) => '- '.$expense->name.': '.$symbol.number_format((float) $expense->amount, 2).' ('.$catLabel.')')->all();
 
-        $total = number_format((float) array_sum(array_column($items, 'amount')), 2);
+        // Report the sum of persisted (rounded) amounts, not the raw input.
+        $total = number_format($expenses->sum(fn (Expense $expense) => (float) $expense->amount), 2);
 
         return [
             'success' => true,

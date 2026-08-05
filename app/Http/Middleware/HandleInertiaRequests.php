@@ -2,11 +2,10 @@
 
 namespace App\Http\Middleware;
 
-use Carbon\Carbon;
+use App\Services\BillingCatalog;
+use App\Services\BillingDateService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
-use Throwable;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -43,27 +42,15 @@ class HandleInertiaRequests extends Middleware
         $subscribed = $user ? $user->subscribed() : false;
 
         $nextBillingDate = null;
-        if ($subscription) {
-            if ($subscription->ends_at) {
-                $nextBillingDate = $subscription->ends_at->format('Y-m-d');
-            } else {
-                $nextBillingDate = Cache::remember(
-                    "next_billing_date.$user->id",
-                    now()->addHour(),
-                    function () use ($subscription, $user) {
-                        try {
-                            $periodEnd = $subscription->asStripeSubscription()->current_period_end;
-
-                            return Carbon::createFromTimestamp($periodEnd)->format('Y-m-d');
-                        } catch (Throwable) {
-                            $isYearly = $user->isYearlySubscribed();
-
-                            return ($subscription->created_at ?? now())->{$isYearly ? 'addYear' : 'addMonth'}()->format('Y-m-d');
-                        }
-                    }
-                );
-            }
+        if ($user) {
+            $billingDate = app(BillingDateService::class)->for($user);
+            $nextBillingDate = $billingDate?->format('Y-m-d');
         }
+
+        // Versioned catalog
+        $catalog = $user
+            ? app(BillingCatalog::class)->sharedProps($user->currency?->value ?? 'EUR')
+            : null;
 
         // Return shared data to Inertia, including authenticated user info, flash messages, translations, and locale.
         return [
@@ -83,6 +70,7 @@ class HandleInertiaRequests extends Middleware
                     'plan' => $subscribed ? ($user->isYearlySubscribed() ? 'yearly' : 'monthly') : null,
                 ] : null,
             ],
+            'catalog' => $catalog,
             'flash' => [
                 'status' => fn () => $request->session()->get('status')
                     ?? $request->session()->get('success')

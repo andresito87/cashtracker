@@ -1,4 +1,5 @@
 import {PageProps as InertiaPageProps} from '@inertiajs/core'
+import {BillingCatalog} from './BillingCatalog'
 
 export interface SharedData extends InertiaPageProps {
 	auth?: {
@@ -14,6 +15,7 @@ export interface SharedData extends InertiaPageProps {
 			plan?: 'yearly' | 'monthly' | null
 		}
 	}
+	catalog?: BillingCatalog | null
 	flash?: {
 		status?: string
 		status_type?: string

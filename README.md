@@ -1,469 +1,319 @@
 <p style="text-align: center;">
-  <img src="public/logo.png" width="1027" alt="CashTracker Logo">
+  <img src="public/logo.png" width="1027" alt="CashTracker logo">
 </p>
 
 # CashTracker
 
-CashTracker is a modern, premium financial management application built on top of Laravel 13 and Inertia.js with
-ReactJS. It enables users to create and manage budgets while tracking their associated categorized expenses, monitoring
-real-time balance calculations and spending progress limits under a secure, responsive layout. It features an integrated
-**AI Financial Assistant** powered by Laravel AI SDK and OpenRouter for natural language expense querying and
-conversational expense creation with automated UI state synchronization.
+CashTracker is a personal finance web application for creating budgets, tracking categorized expenses, and understanding
+spending through an AI-assisted workflow. It combines a Laravel backend with a hybrid Blade and Inertia React frontend,
+PostgreSQL-backed financial operations, and Stripe subscriptions for premium features.
 
----
+## Highlights
 
-## Technical Stack
+- Create general or goal-based budgets in EUR or USD.
+- Record, edit, categorize, and soft-delete expenses.
+- Prevent overspending with transactional writes and pessimistic locking.
+- Explore expenses and create new entries through a streaming AI assistant.
+- Scan receipt images and convert their line items into expenses.
+- Manage monthly or yearly subscriptions through Stripe Checkout and the Billing Portal.
+- Use localized English and Spanish interfaces.
+- Secure accounts with email verification, password recovery, authorization policies, and rate limiting.
 
-* **Backend Framework:** Laravel 13 (PHP 8.5+)
-* **Subscription & Payments Engine:** Laravel Cashier (`laravel/cashier` v16) with Stripe Checkout Integration
-* **AI & Agent Engine:** Laravel AI SDK (`laravel/ai`) with OpenRouter Gateway
-* **Frontend Architecture:** Inertia.js v3 with React 19, TypeScript & `@ai-sdk/react`
-* **Database Engine:** SQLite (Local Development), PostgreSQL (Production Supported), SQLite In-Memory (Testing)
-* **Testing Framework:** Pest PHP 4
-* **Styling Framework:** TailwindCSS 4
-* **Asset Bundler:** Vite 8
+## Screenshots
 
----
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; align-items: start;">
+  <div>
+    <strong>Landing Page</strong><br>
+    <img src="docs/screenshots/landing.png" alt="CashTracker landing page" width="1254">
+  </div>
+  <div>
+    <strong>Dashboard</strong><br>
+    <img src="docs/screenshots/dashboard.png" alt="CashTracker dashboard" width="1254">
+  </div>
+  <div>
+    <strong>Add Expense Modal</strong><br>
+    <img src="docs/screenshots/add-modal.png" alt="Add expense modal" width="1254">
+  </div>
+  <div>
+    <strong>AI Assistant</strong><br>
+    <img src="docs/screenshots/ai-assistant.png" alt="CashTracker AI assistant" width="1254">
+  </div>
+  <div>
+    <strong>Subscription Management</strong><br>
+    <img src="docs/screenshots/subscription.png" alt="Subscription management" width="1254">
+  </div>
+  <div>
+    <strong>Stripe Subscription Invoice</strong><br>
+    <img src="docs/screenshots/invoice-stripe-subscription.png" alt="Stripe subscription invoice" width="1254">
+  </div>
+  <div>
+    <strong>Settings</strong><br>
+    <img src="docs/screenshots/settings.png" alt="Account settings" width="1254">
+  </div>
+  <div>
+    <strong>Login</strong><br>
+    <img src="docs/screenshots/login.png" alt="Login page" width="1254">
+  </div>
+  <div>
+    <strong>Registration</strong><br>
+    <img src="docs/screenshots/register.png" alt="Registration page" width="1254">
+  </div>
+</div>
 
-## Core Features & Optimizations
+## Main Features
 
-### 1. Budget & Categorized Expense Management Engine
+### Budgets and expenses
 
-* **Relational Budget-Expense Architecture:** Each budget contains multiple categorized expenses (`food`,
-  `transportation`,
-  `health`, `entertainment`, `subscriptions`, `beauty`, `clothing`, `home`, `education`, `pets`, `other`) with localized
-  category labels, colors, and visual badges.
-* **Real-Time Balance & Limit Guards:** Automatically computes total spent, remaining balance, and consumption
-  percentage against budget limits. Prevents expense creation or updates from exceeding the available budget balance.
-* **Inertia.js & React Modal System:** Expense creation and editing are handled via a client-side React modal
-  ([ExpenseModal.tsx](resources/js/Components/ExpenseModal.tsx))
-  with Zustand state management ([expense-modal-store.ts](resources/js/store/expense-modal-store.ts)). Budget editing
-  also uses a React modal ([BudgetModal.tsx](resources/js/Components/BudgetModal.tsx)) with its own Zustand store
-  ([budget-modal-store.ts](resources/js/store/budget-modal-store.ts)), providing a consistent UX across both entities.
-* **Typed React Validation Error Component:** Field validation errors in React forms utilize a reusable
-  `<InputError message={...} />` component ([InputError.tsx](resources/js/Components/InputError.tsx)), cleanly decoupled
-  from server-side Blade components.
-* **Reactive Session Flash Messages:** Automatic propagation of Laravel session status notifications (`status` and
-  `status_type`) through Inertia shared props to render feedback banners on the UI after creating, updating, or deleting
-  expenses.
-* **Shallow Nesting Routing Architecture:** Adheres to Laravel REST best practices using Shallow Routing
-  (`POST /budgets/{budget}/expenses` for creation within budget context, and shallow `PUT /expenses/{expense}` and
-  `DELETE /expenses/{expense}` for member updates and deletions), avoiding redundant deep URL nesting.
-* **Soft Deletes & Policy Guards:** Built-in soft deletion for expenses (`Expense`) and policy authorization guards
-  (`ExpensePolicy`, `BudgetPolicy`) ensuring users can only access and modify their own budgets and expenses.
+- Budget and expense CRUD with per-user authorization.
+- General and savings-goal budget types.
+- Categorized expenses, balance calculations, and visual spending progress.
+- Soft deletion for financial records.
+- Transactional expense writes that protect against concurrent overspending.
+- Dashboard and budget-detail views with responsive interactions and toast feedback.
 
----
+### AI financial tools
 
-### 2. PRO Subscriptions & Multi-Currency Billing Engine (Laravel Cashier + Stripe)
+Premium users can access:
 
-* **Multi-Currency Dynamic Pricing (EUR / USD):** Dynamically selects the appropriate Stripe Price ID based on the
-  authenticated user's selected currency (`$user->currency`), defaulting to EUR (39€/mo, 299€/yr) or USD ($39/mo, $
-  299/yr) with localized price formatting across all views.
-* **Laravel Cashier Integration:** Built using Laravel Cashier v16 to manage Stripe Checkout sessions, active
-  subscriptions (`default`), grace period tracking (`onGracePeriod()`), plan swapping (`swap()`), cancellation
-  (`cancel()`), and reactivation (`resume()`).
-* **Interactive Pricing & Subscription Dashboard:** A modern React page component
-  ([Manage.tsx](resources/js/Pages/Subscriptions/Manage.tsx) & [PricingTable.tsx](resources/js/Components/PricingTable.tsx))
-  featuring real-time loading feedback, active plan indicators, grace period banners, and instant plan swapping.
-* **Localized Payment Success & Cancellation Flow:** Custom, branded Blade views (`billing.success` and
-  `billing.cancel`) with 100% i18n key translation support in both Spanish and English.
+- A streaming assistant scoped to an individual budget.
+- Natural-language expense search, filtering, and ordering.
+- Conversational expense creation with ownership and balance validation.
+- Receipt image scanning that extracts a merchant, category, and line items before creating expenses atomically.
 
----
+AI features require a configured provider API key. The default chat configuration uses OpenRouter and `openrouter/free`.
 
-### Application Routes Reference
+### Stripe subscriptions
 
-Below is the routing architecture for budgets, expenses, ticket scanning, and PRO subscriptions:
+- Monthly and yearly plans with EUR and USD price configuration.
+- Stripe Checkout with promotion-code support.
+- Plan changes, cancellation, resumption, and grace-period handling.
+- Stripe Customer Billing Portal integration.
+- Signed webhook verification that fails closed when no webhook secret is configured.
 
-| HTTP Method | URI Path                           | Route Name                 | Controller & Action                     | Description                                         |
-|:------------|:-----------------------------------|:---------------------------|:----------------------------------------|:----------------------------------------------------|
-| `GET`       | `/`                                | `welcome`                  | `Closure`                               | Welcome / landing page                              |
-| `GET`       | `/dashboard`                       | `dashboard`                | `BudgetController@index`                | User dashboard listing budgets                      |
-| `GET`       | `/budgets`                         | `budgets.index`            | `BudgetController@index`                | List user budgets                                   |
-| `POST`      | `/budgets`                         | `budgets.store`            | `BudgetController@store`                | Create a new budget                                 |
-| `GET`       | `/budgets/create`                  | `budgets.create`           | `BudgetController@create`               | Show create budget form                             |
-| `GET`       | `/budgets/{budget}`                | `budgets.show`             | `BudgetController@show`                 | View budget details & expense list                  |
-| `PUT`       | `/budgets/{budget}`                | `budgets.update`           | `BudgetController@update`               | Update budget details                               |
-| `DELETE`    | `/budgets/{budget}`                | `budgets.destroy`          | `BudgetController@destroy`              | Soft delete budget                                  |
-| `GET`       | `/budgets/{budget}/edit`           | `budgets.edit`             | `BudgetController@edit`                 | Show edit budget form                               |
-| `POST`      | `/budgets/{budget}/chat`           | `budgets.chat`             | `BudgetChatController@store`            | Stream AI agent chat for budget (`throttle:20,1`)   |
-| `POST`      | `/budgets/{budget}/scan-ticket`    | `budgets.scan-ticket`      | `TicketScanController@store`            | OCR Ticket Scanner & Auto-Expense (`throttle:10,1`) |
-| `POST`      | `/budgets/{budget}/expenses`       | `budgets.expenses.store`   | `ExpenseController@store`               | Create expense under budget                         |
-| `PUT`       | `/expenses/{expense}`              | `expenses.update`          | `ExpenseController@update`              | Update expense (Shallow route)                      |
-| `DELETE`    | `/expenses/{expense}`              | `expenses.destroy`         | `ExpenseController@destroy`             | Soft delete expense (Shallow route)                 |
-| `GET`       | `/plans`                           | `plans`                    | `SubscriptionController@manage`         | PRO plans & subscription management page            |
-| `POST`      | `/subscription-checkout/{plan}`    | `subscription.checkout`    | `SubscriptionController@checkout`       | Create Stripe checkout session for plan             |
-| `GET`       | `/subscription`                    | `subscription.manage`      | `SubscriptionController@manage`         | User subscription management route                  |
-| `POST`      | `/subscription/swap/{plan}`        | `subscription.swap`        | `SubscriptionController@swap`           | Swap active subscription plan (monthly / yearly)    |
-| `POST`      | `/subscription/cancel`             | `subscription.cancel`      | `SubscriptionController@cancel`         | Cancel active subscription                          |
-| `POST`      | `/subscription/resume`             | `subscription.resume`      | `SubscriptionController@resume`         | Resume canceled subscription on grace period        |
-| `GET`       | `/billing`                         | `billing`                  | `SubscriptionController@billing`        | Stripe billing portal page                          |
-| `GET`       | `/billing/success`                 | `billing.success`          | `SubscriptionController@success`        | Stripe checkout success confirmation page           |
-| `GET`       | `/billing/cancel`                  | `billing.cancel`           | `SubscriptionController@cancelUrl`      | Stripe checkout cancellation page                   |
-| `GET`       | `/auth/login`                      | `login`                    | `LoginController@index`                 | Show login form                                     |
-| `POST`      | `/auth/login`                      | `login.store`              | `LoginController@store`                 | Authenticate user                                   |
-| `POST`      | `/auth/logout`                     | `logout`                   | `LoginController@destroy`               | Logout user                                         |
-| `GET`       | `/auth/register`                   | `register`                 | `RegisterController@index`              | Show registration form                              |
-| `POST`      | `/auth/register`                   | `register.store`           | `RegisterController@store`              | Register new user                                   |
-| `GET`       | `/email/verify`                    | `verification.notice`      | `Closure`                               | Email verification notice                           |
-| `GET`       | `/verify-email/{id}/{hash}`        | `verification.verify`      | `RegisterController@verifyEmail`        | Verify email via signed URL                         |
-| `POST`      | `/email/verification-notification` | `verification.send`        | `RegisterController@resendVerification` | Resend verification email                           |
-| `GET`       | `/settings/profile`                | `settings.profile`         | `UpdateProfileController@edit`          | User profile settings page (Inertia React)          |
-| `PUT`       | `/settings/profile`                | `settings.profile.update`  | `UpdateProfileController@update`        | Update user name and email                          |
-| `GET`       | `/settings/password`               | `settings.password`        | `UpdatePasswordController@edit`         | Password change settings page (Inertia React)       |
-| `PUT`       | `/settings/password`               | `settings.password.update` | `UpdatePasswordController@update`       | Update user password                                |
-| `GET`       | `/admin`                           | `admin.dashboard`          | `Closure`                               | Admin dashboard                                     |
+### Account and platform features
 
-### 3. High-Performance Internationalization (i18n)
+- Registration, login, logout, password reset, and email verification.
+- Profile, password, currency, and language preferences.
+- English and Spanish localization through the `?lang=` query parameter.
+- Custom authorization, throttling, and error pages.
+- Laravel health endpoint at `/up`.
 
-* **Single Round trip Switcher:** Changing languages uses a query parameter optimization (`?lang=`). The system detects
-  the language, updates the session, and renders the translated page in a single HTTP request-response cycle (avoiding
-  standard double redirection latency). There is no dedicated route; the `?lang=` query parameter is accepted by every
-  GET request and is honored by the `SetLocale` middleware against the `config('app.available_locales')` whitelist.
-* **Header Capsule Switcher:** A right-aligned capsule switcher (`ES | EN`) with active state highlight pills, rendered
-  by the shared `resources/views/components/lang-switcher.blade.php` partial. It exposes one anchor per entry in
-  `config('app.available_locales')`, so adding a language to the config is all that is required to surface it in every
-  layout (`base`, `app`, `inertia`).
-* **Session Locale Persistence on Logout:** The system backs up the user's selected locale key before invalidating the
-  session during logout, rewriting it into the newly regenerated session so the login page maintains their preferred
-  language.
-* **Semantic Translation Keys:** Notifications and UI copy use clear, domain-specific translation keys (e.g.
-  `email_verify_intro`, `email_verify_disclaimer`) across both `en` and `es` dictionaries instead of generic positional
-  names.
+## Technology Stack
 
-### 4. Form Submission & Navigation Protection
+| Area             | Technology                                   |
+|------------------|----------------------------------------------|
+| Backend          | PHP 8.5, Laravel 13                          |
+| Frontend         | Inertia.js 3, React 19, TypeScript, Blade    |
+| Styling          | Tailwind CSS 4                               |
+| Database         | PostgreSQL                                   |
+| AI               | Laravel AI SDK, OpenRouter, AI SDK for React |
+| Billing          | Laravel Cashier 16, Stripe                   |
+| State management | Zustand                                      |
+| Testing          | Pest 4, PHPUnit 12                           |
+| Build tooling    | Vite 8, npm                                  |
 
-* **Global Double-Submit Guard:** A DOM-level listener catches all form submissions, immediately disabling submit
-  buttons (`button.disabled = true; pointer-events: none`) to prevent rapid double/triple clicks from queuing multiple
-  database modifications or parallel login requests.
-* **Loading Spinners:** Captures `data-loading-text` parameters on buttons (like Sign In, Register, and Logout) to
-  dynamically replace their content with a rotating SVG spinner and a translated loading message during processing.
-* **Global Header Navigation Guard:** Clicks on header links (`a` tags) flag the page as navigating
-  (`data-navigating="true"`). Any concurrent navigation clicks are automatically blocked using `e.preventDefault()`,
-  preventing multiple duplicate HTTP GET requests to the server (e.g. rapid clicking on the "Log In" or "Register"
-  header links).
+## Requirements
 
-### 5. Professional UX & Styling
+- PHP 8.5 with PDO and the PostgreSQL PDO driver
+- Composer
+- PostgreSQL
+- Node.js 20.19+ or 22.12+
+- npm
+- An OpenRouter API key for AI features
+- A Stripe account and Stripe CLI for local billing development
 
-* **Text Selection Prevention (`select-none`):** Applied to the entire navigation `<header>` and auth `<main>` card
-  wrapper. This prevents the browser from highlighting/selecting adjacent text nodes and links (turning them
-  blue/underlined) when users click rapidly on buttons.
-* **Field-Decoupled Authentication Errors:** Incorrect credentials errors are separated from field-specific formats
-  (like invalid email patterns) and mapped to a general `'login'` key. They render centered directly above the submit
-  button using a warning alert box.
-* **Database Unique Constraint Safeguard:** A `'unique:users'` email validator was added to `SignUpRequest` with
-  translation keys in both languages, preventing database `UniqueConstraintViolationException` crashes and returning a
-  clean, localized form validation error if a duplicate email is entered.
+## Local Setup
 
-### 6. Componentized Architecture & Hybrid Frontend
-
-We abstract UI components cleanly across both Blade (server-side) and React (client-side):
-
-* **Blade Server-Side Components:**
-	* **`<x-input-error>` (`resources/views/components/input-error.blade.php`)**: Anonymous Blade component looping over
-	  server-side form validation rules.
-	* **`<x-alert>` (`resources/views/components/alert.blade.php`)**: Class-backed Blade component resolving status
-	  styles and vector SVG icons.
-* **React Client-Side Components (Inertia):**
-	* **`<InputError />` (`resources/js/Components/InputError.tsx`)**: Reusable TypeScript React component rendering
-	  field validation messages for Inertia form state.
-	* **`<ExpenseModal />` & `<ExpenseForm />` (`resources/js/Components/ExpenseModal.tsx`)**: Client-side React modal
-	  and form for creating and editing budget expenses with Zustand state synchronization.
-	* **`<BudgetModal />` & `<BudgetForm />` (`resources/js/Components/BudgetModal.tsx`)**: Client-side React modal and
-	  form for editing budget details (name, amount, type, description) with Zustand state synchronization.
-	* **`<ConfirmDeleteModal />` (`resources/js/Components/ConfirmDeleteModal.tsx`)**: Reusable deletion modal for
-	  confirming budget or expense removal.
-	* **`<ProgressBar />` (`resources/js/Components/ProgressBar.tsx`)**: Visual progress bar displaying budget
-	  consumption percentage with label.
-	* **`<Toast />` & `<ToastContainer />` (`resources/js/Components/Toast.tsx`,
-	  `resources/js/Components/ToastContainer.tsx`)**: Custom toast notification system for user feedback.
-	* **`<FlashToastListener />` (`resources/js/Components/FlashToastListener.tsx`)**: Listens for Inertia flash props
-	  and triggers toast notifications automatically.
-	* **`<SettingsHeader />` (`resources/js/Components/settings/SettingsHeader.tsx`)**: Shared header component for
-	  settings pages with tab navigation between profile and password sections.
-	* **`<UpdateProfile />` (`resources/js/Pages/Settings/UpdateProfile.tsx`)**: Inertia React page for editing user
-	  profile (name and email) with server-side validation and email re-verification on change.
-	* **`<UpdatePassword />` (`resources/js/Pages/Settings/UpdatePassword.tsx`)**: Inertia React page for changing user
-	  password with current password verification and confirmation matching.
-
-### 7. AI Financial Assistant & Agentic Tools
-
-* **Streaming Agent Architecture (`BudgetAssistant.php`)**: Built on top of Laravel AI SDK (`laravel/ai`) with
-  OpenRouter integration (`openrouter/free` router or custom model options like Qwen 2.5 Coder, Ling 3.0 Flash). Streams
-  responses via the Vercel AI Protocol (`usingVercelDataProtocol()`).
-* **Structured Agent Tools (`Laravel\Ai\Contracts\Tool`)**:
-	* **`SearchExpenses` (`app/Ai/Tools/SearchExpenses.php`)**: Allows natural language queries to search, filter by
-	  name/category, and sort expenses (`sort_by`: `amount_desc`, `amount_asc`, `latest`, `oldest`) with a 30-item
-	  prompt overflow guard and user currency symbol formatting.
-	* **`AddExpense` (`app/Ai/Tools/AddExpense.php`)**: Enables conversational expense creation with strict validation
-	  (positive amount required, category enum mapping, placeholder name rejection) and available budget balance limit
-	  enforcement.
-* **Security & Tenancy Safeguards**: Both AI tools validate budget ownership against the authenticated user
-  (`Budget::where('user_id', auth()->id())`), preventing unauthorized data access or cross-user budget mutations.
-* **Interactive Frontend Chat Component (`CashTrackerAgent.tsx`)**:
-	* Real-time streaming UI using `@ai-sdk/react` (`useChat`).
-	* Filters out internal Chain-of-Thought (CoT) tokens (`<think>`, `<|end|>`) and hides empty intermediate tool
-	  execution bubbles while displaying a clean typing indicator.
-	* Trigger-based Toast notifications using `react-hot-toast` + Inertia data reloads
-	  (`router.reload({ only: ['budget', 'expenses'] })`) when an expense is successfully registered via
-	  `[EXPENSE_CREATED]`.
-
----
-
-### 8. User Settings & Profile Management
-
-* **Inertia React Settings Pages:** Profile and password management are handled via dedicated React pages
-  (`UpdateProfile.tsx`, `UpdatePassword.tsx`) rendered through Inertia, providing a seamless SPA experience without full
-  page reloads.
-* **Tabbed Navigation:** A shared `<SettingsHeader />` component provides tab-based navigation between profile and
-  password sections, with prefetching enabled for instant tab switching.
-* **Server-Side Validation:** Both forms use Laravel Form Requests (`UpdateProfileRequest`, `UpdatePasswordRequest`)
-  for robust validation, with errors displayed inline below each field via the `<InputError />` component.
-* **Email Re-Verification:** When a user changes their email address, the system automatically nullifies
-  `email_verified_at` and sends a new verification notification, ensuring email ownership is always validated.
-* **Password Security:** Password changes require current password verification, new password confirmation matching, and
-  minimum length validation (8 characters). The form resets password fields on successful update.
-* **Zustand State Management:** Budget editing uses a dedicated Zustand store (`budget-modal-store.ts`) following the
-  same pattern as expense modals, ensuring consistent state management across the application.
-
----
-
-## Getting Started
-
-### Prerequisites
-
-* PHP 8.5+
-* Composer
-* Node.js & NPM
-* OpenRouter API Key (required for the AI Financial Assistant)
-
-### Setup & Local Development
-
-**Option A: Quick Automated Setup (Recommended)**
-
-Run the single-command setup script which installs dependencies, creates `.env`, generates app keys, and runs database
-migrations:
-
-```bash
-composer run setup
-composer run dev
-```
-
-> Set `OPENROUTER_API_KEY` in `.env` to enable the AI Financial Assistant.
-
-**Option B: Manual Setup**
-
-1. Install dependencies & configure environment:
+1. Install backend and frontend dependencies:
 
    ```bash
    composer install
    npm install
+   ```
+
+2. Create the local environment file and application key:
+
+   ```bash
    cp .env.example .env
    php artisan key:generate
    ```
 
-   Set your OpenRouter API key in `.env`:
+3. Create a PostgreSQL database and configure `.env` before running migrations:
 
    ```env
-   OPENROUTER_API_KEY=your_openrouter_api_key_here
+   APP_URL=http://localhost:8000
+
+   DB_CONNECTION=pgsql
+   DB_URL=postgresql://USER:PASSWORD@127.0.0.1:5432/DATABASE_NAME
    ```
 
-2. Run database migrations:
+4. Configure the integrations you intend to use. Keep all real credentials in `.env`; never commit them.
+
+5. Prepare the database:
 
    ```bash
-   touch database/database.sqlite
    php artisan migrate
    ```
 
-3. Build frontend assets and start local dev server:
+6. Start the application, queue listener, logs, and Vite development server:
 
    ```bash
-   npm run build
    composer run dev
    ```
 
----
+The application is available at `http://localhost:8000` by default.
 
-## Artisan CLI Reference & Code Generation
+> `composer run setup` automates dependency installation, key generation, migrations, and the frontend build. Configure
+> `DB_URL` first because the value shipped in `.env.example` is only a placeholder.
 
-CashTracker follows standard Laravel 13 code generation conventions. Below is a reference of essential `php artisan`
-commands and flags for rapid development:
+## Environment Configuration
 
-### 1. Models & Combined Scaffolding
+### AI
 
-| Command                                 | Shortcuts / Flags                                                  | Description                                                                                  |
-|:----------------------------------------|:-------------------------------------------------------------------|:---------------------------------------------------------------------------------------------|
-| `php artisan make:model <Name> -mcfs`   | `-m` (migration), `-c` (controller), `-f` (factory), `-s` (seeder) | Creates Model with its migration, controller, factory, and seeder.                           |
-| `php artisan make:model <Name> -mcr`    | `-m` (migration), `-c` (controller), `-r` (resource)               | Creates Model with migration and resource controller (`index`, `show`, `create`, etc.).      |
-| `php artisan make:model <Name> -a`      | `-a` / `--all`                                                     | Generates Model, Migration, Factory, Seeder, Policy, Resource Controller, and Form Requests. |
-| `php artisan make:model <Name> --pivot` | `--pivot`                                                          | Creates a custom pivot model extending `Illuminate\Database\Eloquent\Relations\Pivot`.       |
-
-### 2. Controllers
-
-| Command                                                    | Flags                | Description                                                              |
-|:-----------------------------------------------------------|:---------------------|:-------------------------------------------------------------------------|
-| `php artisan make:controller <Name>Controller`             | *(none)*             | Generates a standard empty controller class.                             |
-| `php artisan make:controller <Name>Controller --resource`  | `--resource` / `-r`  | Generates a controller with full CRUD resource methods.                  |
-| `php artisan make:controller <Name>Controller --api`       | `--api`              | Generates an API resource controller (excludes `create` & `edit` views). |
-| `php artisan make:controller <Name>Controller --invokable` | `--invokable` / `-i` | Generates a single-action controller with an `__invoke()` method.        |
-
-### 3. Migrations, Factories & Seeders
-
-| Command                                                                 | Options / Flags   | Description                                                 |
-|:------------------------------------------------------------------------|:------------------|:------------------------------------------------------------|
-| `php artisan make:migration create_<names>_table`                       | *(default)*       | Generates a new migration for table creation.               |
-| `php artisan make:migration add_<col>_to_<table>_table --table=<table>` | `--table=<table>` | Generates a migration to alter an existing table structure. |
-| `php artisan make:factory <Name>Factory --model=<Name>`                 | `--model=<Model>` | Creates a model factory bound to a specific model.          |
-| `php artisan make:seeder <Name>Seeder`                                  | *(none)*          | Creates a new database seeder class.                        |
-
-### 4. Testing (Pest 4)
-
-| Command                                          | Flags           | Description                                            |
-|:-------------------------------------------------|:----------------|:-------------------------------------------------------|
-| `php artisan make:test <Name>Test --pest`        | `--pest`        | Generates a Pest feature test inside `tests/Feature/`. |
-| `php artisan make:test <Name>Test --pest --unit` | `--pest --unit` | Generates a Pest unit test inside `tests/Unit/`.       |
-
-### 5. Requests, Policies & Architecture Components
-
-| Command                                               | Options           | Description                                                                              |
-|:------------------------------------------------------|:------------------|:-----------------------------------------------------------------------------------------|
-| `php artisan make:request <Name>Request`              | *(none)*          | Generates a Form Request class for input validation and authorization.                   |
-| `php artisan make:policy <Name>Policy --model=<Name>` | `--model=<Model>` | Generates a Policy class mapped to an Eloquent model.                                    |
-| `php artisan make:class <Name>`                       | *(none)*          | Generates a generic PHP class file in `app/`.                                            |
-| `php artisan make:resource <Name>Resource`            | *(none)*          | Generates an Eloquent API Resource class for single JSON model transformation.           |
-| `php artisan make:resource <Name>Collection`          | `--collection`    | Generates an Eloquent API Resource Collection class for transforming arrays/collections. |
-
-### 6. Database Migrations & Management
-
-| Command                            | Options / Flags   | Description                                                               |
-|:-----------------------------------|:------------------|:--------------------------------------------------------------------------|
-| `php artisan migrate`              | *(none)*          | Executes all pending database migrations.                                 |
-| `php artisan migrate:fresh --seed` | `--seed`          | Drops all database tables and re-runs all migrations followed by seeders. |
-| `php artisan migrate:rollback`     | `--step=N`        | Rolls back the last migration batch (or `N` steps back with `--step`).    |
-| `php artisan migrate:reset`        | *(none)*          | Rolls back all application migrations.                                    |
-| `php artisan migrate:status`       | *(none)*          | Displays the execution status (Ran / Pending) of each migration file.     |
-| `php artisan db:seed`              | `--class=<Class>` | Runs database seeders (`DatabaseSeeder` by default or a specific class).  |
-
-### 7. Cache, Configuration & Maintenance
-
-| Command                      | Purpose              | Description                                                               |
-|:-----------------------------|:---------------------|:--------------------------------------------------------------------------|
-| `php artisan optimize:clear` | Flush All Caches     | Clears config, route, view, event, and application caches simultaneously. |
-| `php artisan config:clear`   | Clear Config Cache   | Flushes the cached configuration file (`bootstrap/cache/config.php`).     |
-| `php artisan route:clear`    | Clear Route Cache    | Flushes the cached routes file.                                           |
-| `php artisan view:clear`     | Clear Compiled Views | Flushes compiled Blade template views.                                    |
-| `php artisan cache:clear`    | Clear App Cache      | Flushes the application data cache store.                                 |
-| `php artisan optimize`       | Production Cache     | Caches config, routes, and events for production speed.                   |
-| `php artisan storage:link`   | Symlink Storage      | Creates the symbolic link from `public/storage` to `storage/app/public`.  |
-
-### 8. Production Deployment & Server Maintenance
-
-| Command                           | Purpose                 | Description                                                                                                                    |
-|:----------------------------------|:------------------------|:-------------------------------------------------------------------------------------------------------------------------------|
-| `composer dump-autoload -o`       | Optimize Autoloader     | Rebuilds Composer classmaps into a static optimized array (`-o` / `--optimize`) for maximum class lookup speed in production.  |
-| `sudo service php8.5-fpm restart` | Reset PHP-FPM / OPcache | Restarts the PHP-FPM process pool to flush in-memory OPcache bytecode (replace `php8.5-fpm` with your server's exact version). |
-| `sudo supervisorctl restart all`  | Restart Queue Workers   | Restarts all background workers (Queue / Horizon / Scheduler) managed by Supervisor to load modified code.                     |
-
-```bash
-# Complete production deployment & cache reset sequence (useful after code updates or FTP sync):
-php artisan optimize:clear && php artisan config:clear && php artisan cache:clear && php artisan route:clear && php artisan view:clear && composer dump-autoload -o && sudo service php8.5-fpm restart
-sudo supervisorctl restart all
+```env
+OPENROUTER_API_KEY=
+AI_CHAT_PROVIDER=openrouter
+AI_CHAT_MODEL=openrouter/free
 ```
 
-### 9. Helpful Inspection Commands
+The OpenRouter key is required for the chat assistant and receipt scanning. Provider and model values shown above are
+the chat defaults.
 
-```bash
-# List all registered routes (filter by path or method)
-php artisan route:list --path=budgets --method=GET
+### Stripe
 
-# Show application configuration key
-php artisan config:show app.name
+```env
+STRIPE_KEY=
+STRIPE_SECRET=
+STRIPE_WEBHOOK_SECRET=
 
-# Execute interactive PHP shell in application context
-php artisan tinker
+STRIPE_PRICE_EUR_MONTHLY=
+STRIPE_PRICE_EUR_YEARLY=
+STRIPE_PRICE_USD_MONTHLY=
+STRIPE_PRICE_USD_YEARLY=
+
+CASHIER_CURRENCY=EUR
+CASHIER_CURRENCY_LOCALE=es_ES
 ```
 
-### 10. Inertia & Ziggy Route Generation
+Create the corresponding products and recurring prices in Stripe, then copy each Price ID into the matching variable.
+`STRIPE_KEY`, `STRIPE_SECRET`, and `STRIPE_WEBHOOK_SECRET` are different credentials and are not interchangeable.
 
-| Command                                                      | Options / Flags  | Description                                                                                                                                   |
-|:-------------------------------------------------------------|:-----------------|:----------------------------------------------------------------------------------------------------------------------------------------------|
-| `php artisan ziggy:generate --types=resources/js/ziggy.d.ts` | `--types=<path>` | Generates both the JavaScript route helper (`resources/js/ziggy.js`) and TypeScript declaration file (`resources/js/ziggy.d.ts`) for Inertia. |
-| `php artisan ziggy:generate --types-only`                    | `--types-only`   | Generates/updates only the TypeScript declaration file (`resources/js/ziggy.d.ts`).                                                           |
+### Mail, queues, sessions, and cache
+
+The default local environment stores queues, sessions, and cache data in PostgreSQL. `MAIL_MAILER=log` is sufficient for
+development; configure a real mail transport when testing delivery outside the application log.
+
+## Stripe Webhooks in Local Development
+
+CashTracker receives Stripe events at `POST /stripe/webhook`. The endpoint requires a valid Stripe signature and returns
+`403` when `STRIPE_WEBHOOK_SECRET` is missing or invalid.
+
+1. Authenticate the Stripe CLI:
+
+   ```bash
+   stripe login
+   ```
+
+2. With CashTracker running on port 8000, forward Stripe events to the local webhook:
+
+   ```bash
+   stripe listen --forward-to http://localhost:8000/stripe/webhook
+   ```
+
+3. Stripe CLI will print a signing secret similar to:
+
+   ```text
+   Ready! Your webhook signing secret is whsec_...
+   ```
+
+4. Copy the complete `whsec_...` value into `.env` and clear cached configuration:
+
+   ```env
+   STRIPE_WEBHOOK_SECRET=whsec_...
+   ```
+
+   ```bash
+   php artisan config:clear
+   ```
+
+5. Keep `stripe listen` running while testing Checkout or subscription changes. You can send a test event from another
+   terminal:
+
+   ```bash
+   stripe trigger customer.subscription.created
+   ```
+
+The local CLI signing secret is separate from the webhook signing secret configured for a production endpoint in the
+Stripe Dashboard.
+
+## Key Routes
+
+The table below highlights the application's main entry points. Most authenticated routes also require a verified email;
+AI routes additionally require an active subscription.
+
+| Area           | Method                       | Path                            | Purpose                                   |
+|----------------|------------------------------|---------------------------------|-------------------------------------------|
+| Public         | `GET`                        | `/`                             | Landing page                              |
+| Authentication | `GET`, `POST`                | `/auth/login`                   | Sign in                                   |
+| Authentication | `GET`, `POST`                | `/auth/register`                | Create an account                         |
+| Authentication | `GET`, `POST`                | `/auth/forgot-password`         | Request a password reset                  |
+| Dashboard      | `GET`                        | `/dashboard`                    | List the user's budgets                   |
+| Budgets        | `GET`, `POST`                | `/budgets`                      | List and create budgets                   |
+| Budgets        | `GET`, `PUT/PATCH`, `DELETE` | `/budgets/{budget}`             | View, update, or delete a budget          |
+| Expenses       | `POST`                       | `/budgets/{budget}/expenses`    | Add an expense to a budget                |
+| Expenses       | `PUT`, `DELETE`              | `/expenses/{expense}`           | Update or delete an expense               |
+| AI             | `POST`                       | `/budgets/{budget}/chat`        | Stream a budget-scoped assistant response |
+| AI             | `POST`                       | `/budgets/{budget}/scan-ticket` | Scan a receipt image and create expenses  |
+| Subscriptions  | `GET`                        | `/plans`                        | View available plans                      |
+| Subscriptions  | `GET`                        | `/subscription`                 | Manage the current subscription           |
+| Subscriptions  | `POST`                       | `/subscription-checkout/{plan}` | Start Stripe Checkout                     |
+| Billing        | `GET`                        | `/billing`                      | Open the Stripe Billing Portal            |
+| Stripe         | `POST`                       | `/stripe/webhook`               | Receive signed Stripe webhook events      |
+| Settings       | `GET`, `PUT`                 | `/settings/profile`             | View or update the user profile           |
+| Settings       | `GET`, `PUT`                 | `/settings/password`            | View or update the password               |
+| Health         | `GET`                        | `/up`                           | Laravel application health check          |
+
+For the complete, authoritative route list, run:
 
 ```bash
-# Generate Ziggy routes and TypeScript typings whenever you add or modify Laravel web routes:
-php artisan ziggy:generate --types=resources/js/ziggy.d.ts
+php artisan route:list
 ```
 
----
+## Development Commands
 
-## Testing & Quality Assurance
+| Command                                        | Purpose                                                  |
+|------------------------------------------------|----------------------------------------------------------|
+| `composer run dev`                             | Run Laravel, the queue listener, Pail, and Vite together |
+| `npm run dev`                                  | Run only the Vite development server                     |
+| `npm run build`                                | Build production frontend assets                         |
+| `php artisan migrate`                          | Run pending database migrations                          |
+| `php artisan db:seed`                          | Load the available seed data                             |
+| `composer run test:compact`                    | Run the default test suite with compact output           |
+| `php artisan test --compact --filter=TestName` | Run a focused test                                       |
+| `composer run test:coverage`                   | Generate coverage when Xdebug or PCOV is available       |
+| `composer run format`                          | Format PHP code with Laravel Pint                        |
 
-### Test Suite Architecture (Pest 4)
+## Testing
 
-CashTracker features a robust, professional test suite powered by **Pest PHP 4**.
+Run the default Pest suite with:
 
-* **Database Isolation:** All tests run in an isolated in-memory SQLite environment (`DB_CONNECTION=sqlite`,
-  `DB_DATABASE=:memory:` configured in `phpunit.xml`), ensuring zero side effects, ultra-fast RAM execution, and 100%
-  safety for the local/production database.
-* **Domain Test Helpers (`tests/Pest.php`):** Centralized helpers simplify test setup and keep code DRY:
-	* `createVerifiedUser()`, `createUnverifiedUser()`, `createAdminUser()`
-	* `actingAsVerifiedUser()`, `actingAsUnverifiedUser()`, `actingAsSubscribedUser()`
-	* `validRegistrationPayload()`, `validBudgetPayload()`
-* **Comprehensive Coverage:**
-	* **Authentication & Guest Access:** Login, logout, session locale persistence, invalid credentials handling, guest
-	  redirects.
-	* **User Registration:** Signup flow, password uncompromised leak validation (`Password::uncompromised()`),
-	  `Registered` event dispatching, and email verification notice redirects.
-	* **Email Verification:** Unverified user middleware (`verified`), signed verification URLs (`verification.verify`),
-	  notification resending, and localized email message rendering (`VerifyEmail`).
-	* **Budget & Expense Management:** Full CRUD test coverage (`ExpenseCrudTest`), policy authorization
-	  (`ExpensePolicy`, `BudgetPolicy`), soft deletion, payload validation, available budget balance limits, guest route
-	  restrictions, and Inertia flash prop sharing.
-	* **User Settings:** Profile update tests (`UpdateProfileTest`), password change tests (`UpdatePasswordTest`), Form
-	  Request validation tests (`UpdateProfileRequestTest`, `UpdatePasswordRequestTest`), email re-verification on email
-	  change, and current password verification for password updates.
-	* **Internationalization (i18n):** Multi-language assertions (`en` and `es`) across forms, views, notifications, and
-	  validation error messages.
-	* **AI Tools & Agent:** Unit tests for `SearchExpenses`, `AddExpense` tools and `BudgetAssistant` agent
-	  (`tests/Unit/Ai/Tools/`, `tests/Unit/Ai/Agents/`).
+```bash
+composer run test:compact
+```
 
-### Running Tests
+The default suite uses SQLite in memory for fast isolation. PostgreSQL-specific integration tests live under
+`tests/Feature/Postgres` and are excluded from the default `phpunit.xml` suite; run them against an isolated PostgreSQL
+test database when validating database constraints, locking, or concurrency behavior.
 
-You can run tests using Composer scripts or direct CLI commands:
+Never point tests at a development or production database.
 
-* **Full Test Suite:**
-  ```bash
-  composer run test
-  ```
-  *or using Artisan directly:*
-  ```bash
-  php artisan test
-  ```
+## Architecture Notes
 
-* **Compact Output Mode:**
-  ```bash
-  composer run test:compact
-  ```
-  *or:*
-  ```bash
-  php artisan test --compact
-  ```
-
-* **Filter Specific Tests:**
-  ```bash
-  composer run test:filter -- RegisterTest
-  ```
-  *or:*
-  ```bash
-  php artisan test --compact --filter=RegisterTest
-  ```
-
-* **Code Coverage:**
-  ```bash
-  composer run test:coverage
-  ```
-
-* **Code Style & Formatting (Pint):**
-  ```bash
-  composer run format
-  ```
+- The frontend is intentionally hybrid: Blade handles several server-rendered flows while Inertia React powers
+  dashboards, budget details, subscription management, and settings.
+- AI and receipt-scanning endpoints are restricted to subscribed users and rate-limited.
+- Expense creation uses database transactions and row locking to keep budget totals consistent.
+- Stripe webhook requests are excluded from CSRF protection but always require a configured signing secret and valid
+  signature.
+- Database-backed queues should be running when testing asynchronous behavior; `composer run dev` starts the listener
+  automatically.

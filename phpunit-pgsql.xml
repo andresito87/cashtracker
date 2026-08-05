@@ -5,12 +5,11 @@
          colors="true"
 >
 	<testsuites>
-		<testsuite name="Unit">
+		<testsuite name="PostgresUnit">
 			<directory>tests/Unit</directory>
 		</testsuite>
-		<testsuite name="Feature">
-			<directory>tests/Feature</directory>
-			<exclude>tests/Feature/Postgres</exclude>
+		<testsuite name="PostgresFeature">
+			<directory>tests/Feature/Postgres</directory>
 		</testsuite>
 	</testsuites>
 	<source>
@@ -25,9 +24,12 @@
 		<env name="BCRYPT_ROUNDS" value="4"/>
 		<env name="BROADCAST_CONNECTION" value="null"/>
 		<env name="CACHE_STORE" value="array"/>
-		<env name="DB_CONNECTION" value="sqlite"/>
-		<env name="DB_DATABASE" value=":memory:"/>
-		<env name="DB_URL" value=""/>
+		<env name="DB_CONNECTION" value="pgsql_test"/>
+		<env name="PGSQL_TEST_HOST" value="127.0.0.1"/>
+		<env name="PGSQL_TEST_PORT" value="5433"/>
+		<env name="PGSQL_TEST_DATABASE" value="testdb"/>
+		<env name="PGSQL_TEST_USERNAME" value="testuser"/>
+		<env name="PGSQL_TEST_PASSWORD" value="testpass"/>
 		<env name="MAIL_MAILER" value="array"/>
 		<env name="QUEUE_CONNECTION" value="sync"/>
 		<env name="SESSION_DRIVER" value="array"/>

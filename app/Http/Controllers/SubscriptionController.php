@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
+use App\Services\BillingCatalog;
+use App\Services\BillingDateService;
+use App\Services\SubscriptionLifecycleService;
+use App\Services\SubscriptionTransitionException;
 use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,7 +15,6 @@ use Laravel\Cashier\Exceptions\IncompletePayment;
 use Laravel\Cashier\Exceptions\SubscriptionUpdateFailure;
 use Laravel\Cashier\Subscription;
 use Symfony\Component\HttpFoundation\Response;
-use Throwable;
 
 class SubscriptionController extends Controller
 {
@@ -28,7 +30,8 @@ class SubscriptionController extends Controller
         $user = $request->user();
         $currency = $user->currency?->value ?? 'EUR';
 
-        $priceId = config("services.stripe.prices.$currency.$plan")
+        $priceId = app(BillingCatalog::class)->priceIdFor($plan, $currency)
+            ?? config("services.stripe.prices.$currency.$plan")
             ?? config("services.stripe.price_ai_$plan");
 
         abort_unless($priceId, 404, __('messages.invalid_plan'));
@@ -40,6 +43,9 @@ class SubscriptionController extends Controller
                 'success_url' => route('billing.success'),
                 'cancel_url' => route('billing.cancel'),
             ]);
+
+        // Invalidate any stale billing-date cache before redirecting to check out.
+        app(BillingDateService::class)->forget($user);
 
         return Inertia::location($checkout->redirect()->getTargetUrl());
     }
@@ -56,19 +62,8 @@ class SubscriptionController extends Controller
 
         $nextBillingDate = null;
         if ($subscription) {
-            $endsAt = $subscription->getAttribute('ends_at');
-            if ($endsAt) {
-                $nextBillingDate = $endsAt->format('Y-m-d');
-            } else {
-                try {
-                    $periodEndStr = $this->getNextBillingDate($subscription);
-                    $nextBillingDate = $periodEndStr ? Carbon::parse($periodEndStr)->format('Y-m-d') : null;
-                } catch (Throwable) {
-                    $isYearly = $user->isYearlySubscribed();
-                    $createdAt = $subscription->getAttribute('created_at') ?? now();
-                    $nextBillingDate = ($isYearly ? $createdAt->addYear() : $createdAt->addMonth())->format('Y-m-d');
-                }
-            }
+            $billingDate = app(BillingDateService::class)->for($user);
+            $nextBillingDate = $billingDate?->format('Y-m-d');
         }
 
         return Inertia::render('Subscriptions/Manage', [
@@ -96,16 +91,19 @@ class SubscriptionController extends Controller
         $user = $request->user();
         $currency = $user->currency?->value ?? 'EUR';
 
-        $priceId = config("services.stripe.prices.$currency.$plan")
+        $priceId = app(BillingCatalog::class)->priceIdFor($plan, $currency)
+            ?? config("services.stripe.prices.$currency.$plan")
             ?? config("services.stripe.price_ai_$plan");
 
         abort_unless($priceId, 404, __('messages.invalid_plan'));
 
-        if ($user->subscribed()) {
-            if ($plan === 'monthly' && $user->isYearlySubscribed()) {
-                return back()->with('error', __('messages.cannot_downgrade_yearly'));
-            }
+        try {
+            app(SubscriptionLifecycleService::class)->assertTransition($user, $plan);
+        } catch (SubscriptionTransitionException) {
+            return back()->with('error', __('messages.cannot_downgrade_yearly'));
+        }
 
+        if ($user->subscribed()) {
             $currentSub = $user->subscription();
             if ($currentSub) {
                 if ($currentSub->onGracePeriod()) {
@@ -113,7 +111,7 @@ class SubscriptionController extends Controller
                 }
 
                 $currentSub->swap($priceId);
-                cache()->forget("stripe.next_billing.{$currentSub->getKey()}");
+                app(BillingDateService::class)->forget($user);
             }
         }
 
@@ -133,7 +131,7 @@ class SubscriptionController extends Controller
             $currentSub = $user->subscription();
             if ($currentSub) {
                 $currentSub->cancel();
-                cache()->forget("stripe.next_billing.{$currentSub->getKey()}");
+                app(BillingDateService::class)->forget($user);
             }
         }
 
@@ -152,44 +150,10 @@ class SubscriptionController extends Controller
 
         if ($currentSub?->onGracePeriod()) {
             $currentSub->resume();
-            cache()->forget("stripe.next_billing.{$currentSub->getKey()}");
+            app(BillingDateService::class)->forget($user);
         }
 
         return back()->with('status', __('messages.subscription_resumed_success'));
-    }
-
-    /**
-     * Get the next billing date for the subscription.
-     */
-    private function getNextBillingDate(Subscription $subscription): ?string
-    {
-        $subscriptionId = $subscription->getKey();
-
-        // Use caching to avoid frequent API calls to Stripe for the next billing date
-        return cache()->remember(
-            "stripe.next_billing.$subscriptionId",
-            now()->addMinutes(15),
-            function () use ($subscription, $subscriptionId) {
-                try {
-                    $stripe = $subscription->asStripeSubscription();
-                    $periodEnd = $stripe->current_period_end ?? null;
-                    if (! $periodEnd && isset($stripe->items->data[0])) {
-                        $periodEnd = $stripe->items->data[0]->current_period_end ?? null;
-                    }
-
-                    return $periodEnd
-                        ? Carbon::createFromTimestamp($periodEnd)->toIso8601String()
-                        : null;
-                } catch (Exception $e) {
-                    logger()->error('Error obteniendo next billing date', [
-                        'error' => $e->getMessage(),
-                        'subscription_id' => $subscriptionId,
-                    ]);
-
-                    return null;
-                }
-            }
-        );
     }
 
     /**

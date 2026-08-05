@@ -7,7 +7,6 @@ import {SharedData, Subscription} from '@/types'
 import {SubscriptionUpgrade} from './SubscriptionUpgrade'
 import {SubscriptionDowngrade} from './SubscriptionDowngrade'
 import {ConfirmModal} from '@/Components/ConfirmModal'
-import {getPlanPrices} from '@/config/subscriptionPrices'
 
 export interface SubscriptionStatusProps {
 	subscription?: Subscription | null
@@ -24,16 +23,14 @@ export const SubscriptionStatus = ({
 									   onResume,
 									   onSwap,
 								   }: SubscriptionStatusProps) => {
-	const {auth} = usePage<SharedData>().props
+	const {auth, catalog} = usePage<SharedData>().props
 	const {t, locale} = useTranslation()
 	const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
 	const [isSwapModalOpen, setIsSwapModalOpen] = useState(false)
 
 	const currentPlan = auth?.user?.plan || subscription?.plan
-	const {monthlyPrice, yearlyPrice} = getPlanPrices(
-		auth?.user?.currency,
-		auth?.user?.currency_symbol
-	)
+	const monthlyPrice = catalog?.plans?.monthly?.display_price ?? ''
+	const yearlyPrice = catalog?.plans?.yearly?.display_price ?? ''
 
 	const isOnGracePeriod = subscription?.on_grace_period ?? auth?.user?.on_grace_period ?? false
 	const statusLabel = subscription?.status_label

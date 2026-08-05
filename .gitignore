@@ -40,3 +40,7 @@ Thumbs.db
 /boost.json
 /opencode.json
 
+# Spec Driven Design (SDD) Files/Directories
+/.sdd/
+openspec
+

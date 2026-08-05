@@ -99,6 +99,36 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
+        // Isolated test-only connection — never points at production.
+        'pgsql_test' => [
+            'driver' => 'pgsql',
+            'host' => env('PGSQL_TEST_HOST', '127.0.0.1'),
+            'port' => env('PGSQL_TEST_PORT', '5433'),
+            'database' => env('PGSQL_TEST_DATABASE', 'testdb'),
+            'username' => env('PGSQL_TEST_USERNAME', 'testuser'),
+            'password' => env('PGSQL_TEST_PASSWORD', 'testpass'),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => 'disable',
+        ],
+
+        // Second connection to the same test DB for concurrency tests.
+        'pgsql_test_alt' => [
+            'driver' => 'pgsql',
+            'host' => env('PGSQL_TEST_HOST', '127.0.0.1'),
+            'port' => env('PGSQL_TEST_PORT', '5433'),
+            'database' => env('PGSQL_TEST_DATABASE', 'testdb'),
+            'username' => env('PGSQL_TEST_USERNAME', 'testuser'),
+            'password' => env('PGSQL_TEST_PASSWORD', 'testpass'),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => 'disable',
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),

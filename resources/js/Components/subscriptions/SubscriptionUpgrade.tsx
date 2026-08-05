@@ -2,7 +2,6 @@ import React from 'react'
 import {usePage} from '@inertiajs/react'
 import {useTranslation} from '@/hooks/useTranslation'
 import {SharedData} from '@/types'
-import {getPlanPrices} from '@/config/subscriptionPrices'
 
 interface SubscriptionUpgradeProps {
 	onSwap?: (plan: 'monthly' | 'yearly') => void
@@ -13,13 +12,27 @@ export const SubscriptionUpgrade = ({
 										onSwap,
 										loadingAction,
 									}: SubscriptionUpgradeProps) => {
-	const {auth} = usePage<SharedData>().props
+	const {auth, catalog} = usePage<SharedData>().props
 	const {t} = useTranslation()
 
-	const {yearlyPrice, monthlyPriceTotal, savings} = getPlanPrices(
-		auth?.user?.currency,
-		auth?.user?.currency_symbol
-	)
+	const monthlyMinor = catalog?.plans?.monthly?.price_minor ?? 0
+	const yearlyMinor = catalog?.plans?.yearly?.price_minor ?? 0
+	const yearlyPrice = catalog?.plans?.yearly?.display_price ?? ''
+	const monthlyPriceTotal = catalog?.plans?.monthly?.display_price ?? ''
+	// Savings computed from integer cents only — no float arithmetic in React.
+	const savingsMinor = monthlyMinor * 12 - yearlyMinor
+	const symbol = auth?.user?.currency_symbol ?? '€'
+	const isUSD = (auth?.user?.currency === 'USD')
+
+	// Format a cents value client-side from the catalog using integer division.
+	const formatMinor = (minor: number) => {
+		const whole = Math.floor(minor / 100)
+		const frac = minor % 100
+		return isUSD
+			? `$${whole.toLocaleString()}.${String(frac).padStart(2, '0')}`
+			: `${whole.toLocaleString('es')},${String(frac).padStart(2, '0')}${symbol}`
+	}
+	const savings = formatMinor(savingsMinor)
 
 	return (
 		<div className="rounded-2xl bg-[#1b0e35] p-6 sm:p-8 text-white shadow-sm border border-purple-900/30">

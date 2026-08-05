@@ -14,7 +14,8 @@
 		"laravel/cashier": "^16.6",
 		"laravel/framework": "^13.8",
 		"laravel/tinker": "^3.0",
-		"tightenco/ziggy": "^2.6"
+		"tightenco/ziggy": "^2.6",
+		"ext-pdo": "*"
 	},
 	"require-dev": {
 		"fakerphp/faker": "^1.23",

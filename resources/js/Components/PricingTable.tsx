@@ -4,14 +4,13 @@ import {useTranslation} from '@/hooks/useTranslation'
 import {useSubscriptionActions} from '@/hooks/useSubscriptionActions'
 import {formatDate} from '@/utils/formatDate'
 import {SharedData, Subscription} from '@/types'
-import {getPlanPrices} from '@/config/subscriptionPrices'
 
 interface PricingTableProps {
 	subscription?: Subscription | null
 }
 
 export const PricingTable = ({subscription}: PricingTableProps) => {
-	const {auth} = usePage<SharedData>().props
+	const {auth, catalog} = usePage<SharedData>().props
 	const {t, locale} = useTranslation()
 	const {
 		loadingAction,
@@ -27,10 +26,9 @@ export const PricingTable = ({subscription}: PricingTableProps) => {
 	const rawEndsAt = subscription?.ends_at || auth?.user?.ends_at
 	const formattedDate = rawEndsAt ? formatDate(rawEndsAt, locale) : ''
 
-	const {monthlyPrice, yearlyPrice, monthlyEquivalent} = getPlanPrices(
-		auth?.user?.currency,
-		auth?.user?.currency_symbol
-	)
+	const monthlyPrice = catalog?.plans?.monthly?.display_price ?? ''
+	const yearlyPrice = catalog?.plans?.yearly?.display_price ?? ''
+	const monthlyEquivalent = catalog?.plans?.yearly?.monthly_equivalent_display ?? ''
 
 	return (
 		<div className="py-4">
